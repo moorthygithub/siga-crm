@@ -1,146 +1,147 @@
-import React, { useContext } from 'react'
-import { useState } from "react";
+import React, { useState } from 'react'
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useToast } from "@/hooks/use-toast"
 import BASE_URL from '@/config/BaseUrl';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Label } from '../ui/label';
-import { Input } from '../ui/input';
-import { Button } from '../ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { ContextPanel } from '@/lib/ContextPanel';
+import { Loader } from 'lucide-react';
+import { Google } from '@mui/icons-material';
 
-const LoginAuth = () => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    // const { isPanelUp } = useContext(ContextPanel);
-    const navigate = useNavigate();
-    const {formattedDate} = useContext(ContextPanel)
-    const {toast} = useToast()
-  
-    const handleSumbit = async (e) => {
-      e.preventDefault();
-      // if (!isPanelUp) {
-      //   navigate("/maintenance");
-      //   return;
-      // }
-  
-      setLoading(true);
+export default function LoginAuth() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  
-      //create a formData object and append state values
-      const formData = new FormData();
-      formData.append("username", email);
-      formData.append("password", password);
-  
-      try {
-        // Send POST request to login API with form data
-        const res = await axios.post(`${BASE_URL}/api/panel-login`, formData);
-        console.log("user device id",res.data)
-        if (res.status === 200 && res.data?.msg === "success.") {
-          const token = res.data.UserInfo?.token;
-          if (token ) {
-            // Store the token in localStorage
-            localStorage.setItem("token", token);
-            localStorage.setItem("id", res.data.UserInfo.user.id);
-            localStorage.setItem("name", res.data.UserInfo.user.name);
-            localStorage.setItem("username", res.data.UserInfo.user.mobile);
-            localStorage.setItem("email", res.data.UserInfo.user.email);
-            
-  
-            navigate("/home");
-            toast({
-              title: "Login Successfully",
-              description: formattedDate,
-            });
-          } else {
-            
-            toast({
-              title: "Login Failed, Token not received.",
-              description: formattedDate,
-            });
-          }
-        } else {
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsLoading(true);
+
+    const formData = new FormData();
+    formData.append("username", email);
+    formData.append("password", password);
+
+    try {
+      const res = await axios.post(`${BASE_URL}/api/panel-login`, formData);
+      
+      if (res.status == 200 && res.data?.msg == "success.") {
+        const token = res.data.UserInfo?.token;
+        
+        if (token) {
+          // Store user information in localStorage
+          localStorage.setItem("token", token);
+          localStorage.setItem("id", res.data.UserInfo.user.id);
+          localStorage.setItem("name", res.data.UserInfo.user.name);
+          localStorage.setItem("username", res.data.UserInfo.user.mobile);
+          localStorage.setItem("email", res.data.UserInfo.user.email);
+
+          // Navigate to home page
+          navigate("/home");
+
+          // Show success toast
           toast({
-            title: "Login Failed, Please check your credentials.",
-            description: formattedDate,
+            title: "Login Successful",
+            description: "Welcome back to your dashboard.",
           });
+        } else {
+          throw new Error("No token received");
         }
-      } catch (error) {
-        console.error(error);
-        toast({
-          title: "An error occurred during login.",
-          description: formattedDate,
-        });
+      } else {
+        throw new Error("Login failed");
       }
-  
-      setLoading(false);
-    };
-  return (
-     <div >
-        <Card className=" "  >
-          <CardHeader>
-            <CardTitle className="text-2xl">Login</CardTitle>
-            <CardDescription>
-              Enter your email below to login to your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent >
-            <form  onSubmit={handleSumbit}>
+    } catch (error) {
+      // Handle login errors
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.response?.data?.message || "Please check your credentials.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-         
+  return (
+    <div className="relative flex flex-col justify-center items-center min-h-screen bg-gray-100">
+      <Card className="w-80 max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">Login</CardTitle>
+          <CardDescription className="text-center">
+            Enter your UserName and password to access your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
             <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">UserName</Label>
                 <Input
                   id="email"
-                  name="email"
+                  type="text"
+                  placeholder="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="m@example.com"
                   required
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
+                <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="#"
-                    className="ml-auto inline-block text-sm underline"
+                  <Link 
+                    to="#" 
+                    tabIndex={-1} 
+                    className="text-sm text-muted-foreground hover:underline"
                   >
-                    Forgot your password?
+                    Forgot password?
                   </Link>
                 </div>
                 <Input
                   id="password"
                   type="password"
-                  name="password"
                   value={password}
+                  placeholder="*******"
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
               </div>
-            
-                <Button type="submit" className="w-full">
-                  Login
-                </Button>
-          
-              <Button variant="outline" className="w-full">
-                Login with Google
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading}
+              >
+                {isLoading && (
+                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Sign in
               </Button>
+              
+              
             </div>
-            </form>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link href="#" className="underline">
-                Sign up
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div> 
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col items-center">
+          <p className="text-sm text-muted-foreground">
+            Don&apos;t have an account?{" "}
+            <Link 
+              to="/signup" 
+              className="text-primary hover:underline"
+            >
+              Sign up
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }
-
-export default LoginAuth
