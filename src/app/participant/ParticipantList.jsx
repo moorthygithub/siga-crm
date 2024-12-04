@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import Page from '../dashboard/page'
-import BASE_URL from '@/config/BaseUrl';
+import React, { useState } from "react";
+import Page from "../dashboard/page";
+import BASE_URL from "@/config/BaseUrl";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import {
@@ -40,7 +40,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ParticipantView from './ParticipantView';
+import ParticipantView from "./ParticipantView";
 
 const ParticipantList = () => {
   const {
@@ -68,7 +68,6 @@ const ParticipantList = () => {
 
   // Define columns for the table
   const columns = [
-    
     {
       accessorKey: "id",
       header: "ID",
@@ -102,8 +101,7 @@ const ParticipantList = () => {
       header: "Mobile",
       cell: ({ row }) => <div>{row.getValue("idcardsub_rep_mobile")}</div>,
     },
-    
-    
+
     {
       id: "actions",
       header: "Action",
@@ -118,7 +116,7 @@ const ParticipantList = () => {
             //   // Implement view details functionality
             //   console.log("View registration details:", registration);
             // }}
-            onClick={() => setSelectedId(registration)} 
+            onClick={() => setSelectedId(registration)}
           >
             <Eye className="h-4 w-4" />
           </Button>
@@ -186,132 +184,133 @@ const ParticipantList = () => {
     );
   }
   return (
-   <Page>
-    <div className="flex w-full p-4 gap-2">
-      <div className='w-[70%]'>
-        <div className="flex text-left text-xl text-gray-800 font-[400]" >Id Card List</div>
-        {/* searching and column filter  */}
-        <div className="flex items-center py-4">
-          <Input
-            placeholder="Filter firm names..."
-            value={table.getColumn("id_name_of_firm")?.getFilterValue() ?? ""}
-            onChange={(event) =>
-              table
-                .getColumn("id_name_of_firm")
-                ?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Columns <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        {/* table  */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
+    <Page>
+      <div className="flex w-full p-4 gap-2">
+        <div className="w-[70%]">
+          <div className="flex text-left text-xl text-gray-800 font-[400]">
+            Id Card List
+          </div>
+          {/* searching and column filter  */}
+          <div className="flex items-center py-4">
+            <Input
+              placeholder="Search..."
+              value={table.getState().globalFilter || ""}
+              onChange={(event) => {
+                table.setGlobalFilter(event.target.value);
+              }}
+              className="max-w-sm"
+            />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
                     return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
                     );
                   })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          {/* table  */}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        {/* row slection and pagintaion button  */}
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
-          <div className="space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </Button>
+          {/* row slection and pagintaion button  */}
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <div className="flex-1 text-sm text-muted-foreground">
+              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {table.getFilteredRowModel().rows.length} row(s) selected.
+            </div>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </div>
-        </div>
-        <div className='w-[30%] p-4 m-auto border-l'>
-              <ParticipantView id={selectedId}  />
+        <div className="w-[30%] p-4 m-auto border-l">
+          <ParticipantView id={selectedId} />
         </div>
       </div>
-   </Page>
-  )
-}
+    </Page>
+  );
+};
 
-export default ParticipantList
+export default ParticipantList;

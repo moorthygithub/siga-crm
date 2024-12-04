@@ -195,16 +195,14 @@ const RegistrationList = () => {
         <div className="flex text-left text-xl text-gray-800 font-[400]" >Registrations List</div>
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
-          <Input
-            placeholder="Filter firm names..."
-            value={table.getColumn("fair_firm_name")?.getFilterValue() ?? ""}
-            onChange={(event) =>
-              table
-                .getColumn("fair_firm_name")
-                ?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
+        <Input
+              placeholder="Search..."
+              value={table.getState().globalFilter || ""}
+              onChange={(event) => {
+                table.setGlobalFilter(event.target.value);
+              }}
+              className="max-w-sm"
+            />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
