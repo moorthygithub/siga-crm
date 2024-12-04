@@ -10,7 +10,6 @@ import {
 import { 
   Activity, 
   BarChart2, 
-  DollarSign, 
   IndianRupee, 
   TrendingUp 
 } from "lucide-react"
@@ -77,7 +76,7 @@ const Home = () => {
         />
         <MetricCard 
           title="Today's Printing Sum" 
-          value={`$${data.current_day_printing_sum}`} 
+          value={`₹${data.current_day_printing_sum}`} 
           icon={IndianRupee}
         />
         <MetricCard 
@@ -87,7 +86,7 @@ const Home = () => {
         />
         <MetricCard 
           title="Total Printing Sum" 
-          value={`$${data.total_printing_sum}`} 
+          value={`₹${data.total_printing_sum}`} 
           icon={TrendingUp}
         />
       </div>
