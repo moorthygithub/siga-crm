@@ -40,12 +40,14 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from "@/config/BaseUrl";
+import RegistrationView from "./RegistrationView";
 
 const RegistrationList = () => {
   const {
     data: registrations,
     isLoading,
     isError,
+    refetch,
   } = useQuery({
     queryKey: ["registrations"],
     queryFn: async () => {
@@ -62,31 +64,10 @@ const RegistrationList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const [selectedId, setSelectedId] = useState(null);
 
   // Define columns for the table
   const columns = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
     {
       accessorKey: "id",
       header: "ID",
@@ -107,42 +88,22 @@ const RegistrationList = () => {
     },
     {
       accessorKey: "fair_person_name",
-      header: "Contact Person",
+      header: "Name",
       cell: ({ row }) => <div>{row.getValue("fair_person_name")}</div>,
     },
+ 
     {
       accessorKey: "fair_person_mobile",
       header: "Mobile",
       cell: ({ row }) => <div>{row.getValue("fair_person_mobile")}</div>,
     },
-    {
-      accessorKey: "fair_categygroup",
-      header: "Category",
-      cell: ({ row }) => <div>{row.getValue("fair_categygroup")}</div>,
-    },
+   
     {
       accessorKey: "fair_no_of_people",
       header: "No of People",
       cell: ({ row }) => <div>{row.getValue("fair_no_of_people")}</div>,
     },
-    {
-      accessorKey: "fair_print_status",
-      header: "Print Status",
-      cell: ({ row }) => {
-        const status = row.getValue("fair_print_status");
-        return (
-          <span
-            className={`px-2 py-1 rounded text-xs ${
-              status === "Printed"
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {status || "Pending"}
-          </span>
-        );
-      },
-    },
+    
     {
       id: "actions",
       header: "Action",
@@ -153,10 +114,12 @@ const RegistrationList = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              // Implement view details functionality
-              console.log("View registration details:", registration);
-            }}
+            // onClick={() => {
+            //   // Implement view details functionality
+            //   console.log("View registration details:", registration);
+              
+            // }}
+            onClick={() => setSelectedId(registration)} 
           >
             <Eye className="h-4 w-4" />
           </Button>
@@ -208,7 +171,7 @@ const RegistrationList = () => {
   if (isError) {
     return (
       <Page>
-        <Card className="w-full max-w-md mx-auto mt-10">
+        <Card className="w-full max-w-md mx-auto mt-10 ">
           <CardHeader>
             <CardTitle className="text-destructive">
               Error Fetching Registrations
@@ -226,7 +189,9 @@ const RegistrationList = () => {
 
   return (
     <Page>
-      <div className="w-full p-4">
+      <div className=" flex w-full p-4 gap-2 ">
+        {/* registration lIst  */}
+        <div className="w-[70%]">
         <div className="flex text-left text-xl text-gray-800 font-[400]" >Registrations List</div>
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
@@ -342,6 +307,10 @@ const RegistrationList = () => {
               Next
             </Button>
           </div>
+        </div>
+        </div>
+        <div className="w-[30%] p-4  m-auto border-l">
+        <RegistrationView id={selectedId} />
         </div>
       </div>
     </Page>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import Page from '../dashboard/page'
+import React, { useState } from "react";
+import Page from "../dashboard/page";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import {
@@ -39,9 +39,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import BASE_URL from '@/config/BaseUrl';
+import BASE_URL from "@/config/BaseUrl";
+import RegistrationView from "./RegistrationView";
 
-const JobRequireList = () => {
+const RegistrationList = () => {
   const {
     data: registrations,
     isLoading,
@@ -51,10 +52,10 @@ const JobRequireList = () => {
     queryKey: ["registrations"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/panel-fetch-jobrequire`, {
+      const response = await axios.get(`${BASE_URL}/api/panel-fetch-register`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return response.data.jobrequire;
+      return response.data.registerData;
     },
   });
 
@@ -63,71 +64,63 @@ const JobRequireList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const [selectedId, setSelectedId] = useState(null);
 
   // Define columns for the table
   const columns = [
-    
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "id",
       header: "ID",
       cell: ({ row }) => <div>{row.getValue("id")}</div>,
     },
     {
-      accessorKey: "full_name",
+      accessorKey: "fair_firm_name",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Full Name
+          Firm Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("full_name")}</div>,
+      cell: ({ row }) => <div>{row.getValue("fair_firm_name")}</div>,
     },
+ 
     {
-      accessorKey: "father_name",
-      header: "Father Name",
-      cell: ({ row }) => <div>{row.getValue("father_name")}</div>,
-    },
-    {
-      accessorKey: "residing_years",
-      header: "Residence",
-      cell: ({ row }) => <div>{row.getValue("residing_years")}</div>,
-    },
-    {
-      accessorKey: "re_locate",
-      header: "Relaocate",
-      cell: ({ row }) => <div>{row.getValue("re_locate")}</div>,
-    },
-    {
-      accessorKey: "person_email",
-      header: "Email",
-      cell: ({ row }) => <div>{row.getValue("person_email")}</div>,
-    },
-    {
-      accessorKey: "person_mobile",
+      accessorKey: "fair_person_mobile",
       header: "Mobile",
-      cell: ({ row }) => <div>{row.getValue("person_mobile")}</div>,
+      cell: ({ row }) => <div>{row.getValue("fair_person_mobile")}</div>,
     },
+   
     {
-      accessorKey: "staff_status",
-      header: "Staff Status",
-      cell: ({ row }) => {
-        const status = row.getValue("staff_status");
-        return (
-          <span
-            className={`px-2 py-1 rounded text-xs ${
-              status === "0"
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {status || "Pending"}
-          </span>
-        );
-      },
+      accessorKey: "fair_no_of_people",
+      header: "No of People",
+      cell: ({ row }) => <div>{row.getValue("fair_no_of_people")}</div>,
     },
+    
     {
       id: "actions",
       header: "Action",
@@ -138,10 +131,12 @@ const JobRequireList = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              // Implement view details functionality
-              console.log("View registration details:", registration);
-            }}
+            // onClick={() => {
+            //   // Implement view details functionality
+            //   console.log("View registration details:", registration);
+              
+            // }}
+            onClick={() => setSelectedId(registration)} 
           >
             <Eye className="h-4 w-4" />
           </Button>
@@ -182,7 +177,7 @@ const JobRequireList = () => {
         <div className="flex justify-center items-center h-full">
           <Button disabled>
             <Loader2 className=" h-4 w-4 animate-spin" />
-            Loading Job Require
+            Loading Registrations
           </Button>
         </div>
       </Page>
@@ -196,7 +191,7 @@ const JobRequireList = () => {
         <Card className="w-full max-w-md mx-auto mt-10">
           <CardHeader>
             <CardTitle className="text-destructive">
-              Error Fetching Job Require
+              Error Fetching Registrations
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -210,17 +205,18 @@ const JobRequireList = () => {
   }
 
   return (
-   <Page>
-     <div className="w-full p-4">
-        <div className="flex text-left text-xl text-gray-800 font-[400]" >Job Require List</div>
+    <Page>
+      <div className=" flex w-full p-4 gap-4">
+        <div className="w-7/10">
+        <div className="flex text-left text-xl text-gray-800 font-[400]" >Registrations List</div>
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
           <Input
-            placeholder="Filter Full names..."
-            value={table.getColumn("full_name")?.getFilterValue() ?? ""}
+            placeholder="Filter firm names..."
+            value={table.getColumn("fair_firm_name")?.getFilterValue() ?? ""}
             onChange={(event) =>
               table
-                .getColumn("full_name")
+                .getColumn("fair_firm_name")
                 ?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
@@ -328,9 +324,13 @@ const JobRequireList = () => {
             </Button>
           </div>
         </div>
+        </div>
+        <div className="3/10">
+        <RegistrationView id={selectedId} />
+        </div>
       </div>
-   </Page>
-  )
-}
+    </Page>
+  );
+};
 
-export default JobRequireList
+export default RegistrationList;

@@ -24,6 +24,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { ContextPanel } from "@/lib/ContextPanel";
+import { NavMainUpdate } from "./nav-main-update";
 
 
 export function AppSidebar({ ...props }) {
@@ -53,6 +54,20 @@ export function AppSidebar({ ...props }) {
       },
     ],
     navMain: [
+    
+    
+      {
+        title: "Payment Mediation",
+        url: "/amount",
+        icon: Settings2,
+       
+      },
+      {
+        title: "Business Expansion",
+        url: "/business-opp",
+        icon: BookOpen,
+        
+      },
       {
         title: "Job Offered",
         url: "/job-offered",
@@ -65,23 +80,23 @@ export function AppSidebar({ ...props }) {
         icon: SquareTerminal,
         
       },
+      
+    ],
+    navMain1: [
+    
+    
       {
         title: "Directory",
         url: "/directory",
         icon: Bot,
         
       },
+      
       {
-        title: "Business Opp.",
-        url: "/business-opp",
-        icon: BookOpen,
+        title: "Latest News",
+        url: "#",
+        icon: SquareTerminal,
         
-      },
-      {
-        title: "Amount",
-        url: "/amount",
-        icon: Settings2,
-       
       },
     ],
     projects: [
@@ -96,7 +111,7 @@ export function AppSidebar({ ...props }) {
         icon: PieChart,
       },
       {
-        name: "Participants",
+        name: "Id Card",
         url: "/participant",
         icon: Map,
       },
@@ -110,6 +125,7 @@ export function AppSidebar({ ...props }) {
       <SidebarContent>
       <NavProjects projects={data.projects} />
         <NavMain items={data.navMain} />
+        <NavMainUpdate items={data.navMain1} />
         
       </SidebarContent>
       <SidebarFooter>

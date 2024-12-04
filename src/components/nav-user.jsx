@@ -38,11 +38,10 @@ export function NavUser({
     localStorage.clear();
     navigate("/");
   };
-  console.log("navuser console",user)
+
 
   const splitUser = user.name
-  const intialsChar = splitUser.split(" ").map(word => word.charAt(0)).join("")
-  console.log("intialchar",intialsChar)
+  const intialsChar = splitUser.split(" ").map(word => word.charAt(0)).join("").toUpperCase()
 
   return (
     (<SidebarMenu>

@@ -40,12 +40,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ParticipantView from './ParticipantView';
 
 const ParticipantList = () => {
   const {
     data: registrations,
     isLoading,
     isError,
+    refetch,
   } = useQuery({
     queryKey: ["registrations"],
     queryFn: async () => {
@@ -62,31 +64,11 @@ const ParticipantList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const [selectedId, setSelectedId] = useState(null);
 
   // Define columns for the table
   const columns = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    
     {
       accessorKey: "id",
       header: "ID",
@@ -132,10 +114,11 @@ const ParticipantList = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              // Implement view details functionality
-              console.log("View registration details:", registration);
-            }}
+            // onClick={() => {
+            //   // Implement view details functionality
+            //   console.log("View registration details:", registration);
+            // }}
+            onClick={() => setSelectedId(registration)} 
           >
             <Eye className="h-4 w-4" />
           </Button>
@@ -204,8 +187,9 @@ const ParticipantList = () => {
   }
   return (
    <Page>
-    <div className="w-full p-4">
-        <div className="flex text-left text-xl text-gray-800 font-[400]" >Participations List</div>
+    <div className="flex w-full p-4 gap-2">
+      <div className='w-[70%]'>
+        <div className="flex text-left text-xl text-gray-800 font-[400]" >Id Card List</div>
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
           <Input
@@ -320,6 +304,10 @@ const ParticipantList = () => {
               Next
             </Button>
           </div>
+        </div>
+        </div>
+        <div className='w-[30%] p-4 m-auto border-l'>
+              <ParticipantView id={selectedId}  />
         </div>
       </div>
    </Page>

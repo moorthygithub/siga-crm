@@ -46,6 +46,7 @@ const AmountList = () => {
     data: registrations,
     isLoading,
     isError,
+    refetch,
   } = useQuery({
     queryKey: ["registrations"],
     queryFn: async () => {
@@ -65,28 +66,7 @@ const AmountList = () => {
 
   // Define columns for the table
   const columns = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+   
     {
       accessorKey: "id",
       header: "ID",
@@ -227,7 +207,7 @@ const AmountList = () => {
   return (
    <Page>
      <div className="w-full p-4">
-        <div className="flex text-left text-xl text-gray-800 font-[400]" >Amount List</div>
+        <div className="flex text-left text-xl text-gray-800 font-[400]" >Payment Mediation List</div>
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
           <Input

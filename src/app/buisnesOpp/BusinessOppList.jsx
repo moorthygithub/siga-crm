@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import Page from '../dashboard/page'
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -45,6 +45,7 @@ const BusinessOppList = () => {
     data: registrations,
     isLoading,
     isError,
+    refetch,
   } = useQuery({
     queryKey: ["registrations"],
     queryFn: async () => {
@@ -232,7 +233,7 @@ const BusinessOppList = () => {
   return (
    <Page>
         <div className="w-full p-4">
-        <div className="flex text-left text-xl text-gray-800 font-[400]" >Business Opp. List</div>
+        <div className="flex text-left text-xl text-gray-800 font-[400]" >Business Expansion List</div>
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
           <Input
