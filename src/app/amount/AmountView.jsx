@@ -162,7 +162,7 @@ const AmountView = () => {
                 <div className="flex gap-4">
                   <Button
                     variant="outline"
-                    onClick={() => handleAttachmentView(data.ledger)}
+                    onClick={() => handleAttachmentView(`https://agsrebuild.store/public/app_images/ledger/${data.ledger}`)}
                     className="flex items-center gap-2"
                   >
                     <FileText className="h-4 w-4" /> Ledger
@@ -170,7 +170,7 @@ const AmountView = () => {
                   <Button
                     variant="outline"
                     onClick={() =>
-                      handleAttachmentView(data.authorisation_letter)
+                      handleAttachmentView(`https://agsrebuild.store/public/app_images/authorisation_letter/${data.authorisation_letter}`)
                     }
                     className="flex items-center gap-2"
                   >

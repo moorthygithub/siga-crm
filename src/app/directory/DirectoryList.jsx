@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from '@/config/BaseUrl';
+import { useNavigate } from 'react-router-dom';
 
 const DirectoryList = () => {
   const {
@@ -63,6 +64,7 @@ const DirectoryList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const navigate = useNavigate()
 
   // Define columns for the table
   const columns = [
@@ -135,7 +137,7 @@ const DirectoryList = () => {
             size="icon"
             onClick={() => {
               // Implement view details functionality
-              console.log("View registration details:", registration);
+              navigate(`/directory-view/${registration}`)
             }}
           >
             <Eye className="h-4 w-4" />

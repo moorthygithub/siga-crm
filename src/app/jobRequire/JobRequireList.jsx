@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import Page from '../dashboard/page'
+import React, { useState } from "react";
+import Page from "../dashboard/page";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import {
@@ -39,7 +39,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import BASE_URL from '@/config/BaseUrl';
+import BASE_URL from "@/config/BaseUrl";
+import { useNavigate } from "react-router-dom";
 
 const JobRequireList = () => {
   const {
@@ -51,9 +52,12 @@ const JobRequireList = () => {
     queryKey: ["registrations"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/panel-fetch-jobrequire`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-jobrequire`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       return response.data.jobrequire;
     },
   });
@@ -63,10 +67,10 @@ const JobRequireList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const navigate = useNavigate();
 
   // Define columns for the table
   const columns = [
-    
     {
       accessorKey: "id",
       header: "ID",
@@ -138,10 +142,7 @@ const JobRequireList = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              // Implement view details functionality
-              console.log("View registration details:", registration);
-            }}
+            onClick={()=>navigate(`/job-require-view/${registration}`)}
           >
             <Eye className="h-4 w-4" />
           </Button>
@@ -210,18 +211,18 @@ const JobRequireList = () => {
   }
 
   return (
-   <Page>
-     <div className="w-full p-4">
-        <div className="flex text-left text-xl text-gray-800 font-[400]" >Job Require List</div>
+    <Page>
+      <div className="w-full p-4">
+        <div className="flex text-left text-xl text-gray-800 font-[400]">
+          Job Require List
+        </div>
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
           <Input
             placeholder="Filter Full names..."
             value={table.getColumn("full_name")?.getFilterValue() ?? ""}
             onChange={(event) =>
-              table
-                .getColumn("full_name")
-                ?.setFilterValue(event.target.value)
+              table.getColumn("full_name")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />
@@ -329,8 +330,8 @@ const JobRequireList = () => {
           </div>
         </div>
       </div>
-   </Page>
-  )
-}
+    </Page>
+  );
+};
 
-export default JobRequireList
+export default JobRequireList;

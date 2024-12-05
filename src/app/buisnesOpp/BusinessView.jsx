@@ -121,25 +121,36 @@ const BusinessView = () => {
                 </div>
               </div>
 
-              <Separator className="my-4" />
 
+
+              <Separator className="my-4" />
+              <div className="mb-6 ">
+                <h3 className="text-lg font-semibold mb-3">
+                  Offer & Investment
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                <InfoItem label="Looking for" value={data.looking_for} />
+                 <InfoItem label="Offer" value={data.what_you_offer} />
+                  <InfoItem label="Investment Amount" value={data.investment_amount} />
+                  
+                </div>
+              </div>
+
+          
+              <Separator className="my-4" />
               {/* Defaulter Details */}
               <div className="mb-6 ">
                 <h3 className="text-lg font-semibold mb-3">
                   Other Details
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <InfoItem label="Looking for" value={data.looking_for} />
+               
 
                   <InfoItem label="Area" value={data.which_area} />
                   <InfoItem label="State" value={data.which_state} />
-                  <InfoItem label="Offer" value={data.what_you_offer} />
-                  <InfoItem label="Investment Amount" value={data.investment_amount} />
+                  
                 </div>
               </div>
-
-          
-
              
 
               {/* Notes */}

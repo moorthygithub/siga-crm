@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Page from "../dashboard/page";
-import BASE_URL from "@/config/BaseUrl";
+import ParticipationView from "./ParticipationView";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import {
@@ -17,8 +17,6 @@ import {
   MoreHorizontal,
   Eye,
   Loader2,
-  FilePlus,
-  FilePenLine,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -42,25 +40,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
-import NewView from "./NewView";
-const LatestNewsList = () => {
+import BASE_URL from "@/config/BaseUrl";
+const ParticipationList = () => {
   const {
-    data: registrations,
+    data: participants,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["registrations"],
+    queryKey: ["participants"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${BASE_URL}/api/panel-fetch-news-list`,
+        `${BASE_URL}/api/panel-fetch-participant`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      return response.data.news;
+      return response.data.participant;
     },
   });
 
@@ -70,7 +67,7 @@ const LatestNewsList = () => {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [selectedId, setSelectedId] = useState(null);
-  const navigate = useNavigate();
+
   // Define columns for the table
   const columns = [
     {
@@ -79,50 +76,42 @@ const LatestNewsList = () => {
       cell: ({ row }) => <div>{row.getValue("id")}</div>,
     },
     {
-      accessorKey: "news_heading",
+      accessorKey: "name_of_firm",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          News Heading
+          Firm Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("news_heading")}</div>,
+      cell: ({ row }) => <div>{row.getValue("name_of_firm")}</div>,
     },
     {
-      accessorKey: "news_sub_title",
-      header: "Subtitle",
-      cell: ({ row }) => <div>{row.getValue("news_sub_title")}</div>,
+      accessorKey: "brand_name",
+      header: "Brand",
+      cell: ({ row }) => <div>{row.getValue("brand_name")}</div>,
     },
 
     {
-      id: "actions",
-      header: "Action",
-      cell: ({ row }) => {
-        const registration = row.original.id;
-
-        return (
-          <>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(`/edit-news/${registration}`)}
-            >
-              <FilePenLine className="h-4 w-4" />
-            </Button>
-          
-          </>
-        );
-      },
+      accessorKey: "manufacturer_name",
+      header: "Manufacturer",
+      cell: ({ row }) => <div>{row.getValue("manufacturer_name")}</div>,
     },
+
+    {
+      accessorKey: "profile_email",
+      header: "Email",
+      cell: ({ row }) => <div>{row.getValue("profile_email")}</div>,
+    },
+
+   
   ];
 
   // Create the table instance
   const table = useReactTable({
-    data: registrations || [],
+    data: participants || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -152,7 +141,7 @@ const LatestNewsList = () => {
         <div className="flex justify-center items-center h-full">
           <Button disabled>
             <Loader2 className=" h-4 w-4 animate-spin" />
-            Loading News List
+            Loading Participants
           </Button>
         </div>
       </Page>
@@ -163,10 +152,10 @@ const LatestNewsList = () => {
   if (isError) {
     return (
       <Page>
-        <Card className="w-full max-w-md mx-auto mt-10">
+        <Card className="w-full max-w-md mx-auto mt-10 ">
           <CardHeader>
             <CardTitle className="text-destructive">
-              Error Fetching News
+              Error Fetching Participants
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -180,10 +169,11 @@ const LatestNewsList = () => {
   }
   return (
     <Page>
-      <div className="flex w-full p-4 gap-2">
-        <div className="w-[70%]">
+      <div className=" flex w-full p-4 gap-2 ">
+        {/* registration lIst  */}
+        <div className="w-[60%]">
           <div className="flex text-left text-xl text-gray-800 font-[400]">
-            Latest News List
+            Participants List
           </div>
           {/* searching and column filter  */}
           <div className="flex items-center py-4">
@@ -195,7 +185,6 @@ const LatestNewsList = () => {
               }}
               className="max-w-sm"
             />
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">
@@ -222,11 +211,6 @@ const LatestNewsList = () => {
                   })}
               </DropdownMenuContent>
             </DropdownMenu>
-          <div   onClick={() => navigate(`/create-news`)} >
-          <Button  variant="default" className="ml-2">
-              Create News
-            </Button>
-          </div>
           </div>
           {/* table  */}
           <div className="rounded-md border">
@@ -255,7 +239,7 @@ const LatestNewsList = () => {
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
-                            onClick={() => setSelectedId(row.original.id)}
+                      onClick={() => setSelectedId(row.original.id)}
                       className="cursor-pointer hover:bg-gray-100"
                     >
                       {row.getVisibleCells().map((cell) => (
@@ -307,12 +291,12 @@ const LatestNewsList = () => {
             </div>
           </div>
         </div>
-        <div className="w-[30%] p-4  m-auto border-l">
-          <NewView id={selectedId} />
+        <div className="w-[40%] p-4  m-auto border-l">
+          <ParticipationView id={selectedId} />
         </div>
       </div>
     </Page>
   );
 };
 
-export default LatestNewsList;
+export default ParticipationList;

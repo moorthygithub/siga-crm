@@ -65,7 +65,19 @@ const AmountList = () => {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const navigate = useNavigate()
-
+  const handleCompanyStatusLabel = (status) => {
+    switch (status) {
+      case 0:
+        return "Pending";
+      case 1:
+        return "Active";
+      case 2:
+        return "Expired";
+      default:
+        return "Unknown";
+    }
+  };
+  
   // Define columns for the table
   const columns = [
    
@@ -112,6 +124,7 @@ const AmountList = () => {
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("dus_status");
+        const label = handleCompanyStatusLabel(status);
         return (
           <span
             className={`px-2 py-1 rounded text-xs ${
@@ -120,7 +133,7 @@ const AmountList = () => {
                 : "bg-gray-100 text-gray-800"
             }`}
           >
-            {status }
+            {label }
           </span>
         );
       },

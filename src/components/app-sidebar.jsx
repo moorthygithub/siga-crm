@@ -106,6 +106,11 @@ export function AppSidebar({ ...props }) {
         icon: Frame,
       },
       {
+        name: "Participant",
+        url: "/participation",
+        icon: Map,
+      },
+      {
         name: "Registrations",
         url: "/registration",
         icon: PieChart,
@@ -115,6 +120,7 @@ export function AppSidebar({ ...props }) {
         url: "/participant",
         icon: Map,
       },
+      
     ],
   };
   return (
