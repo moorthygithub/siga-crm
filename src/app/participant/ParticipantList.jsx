@@ -102,27 +102,7 @@ const ParticipantList = () => {
       cell: ({ row }) => <div>{row.getValue("idcardsub_rep_mobile")}</div>,
     },
 
-    {
-      id: "actions",
-      header: "Action",
-      cell: ({ row }) => {
-        const registration = row.original.id;
-
-        return (
-          <Button
-            variant="ghost"
-            size="icon"
-            // onClick={() => {
-            //   // Implement view details functionality
-            //   console.log("View registration details:", registration);
-            // }}
-            onClick={() => setSelectedId(registration)}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-        );
-      },
-    },
+    
   ];
 
   // Create the table instance
@@ -255,6 +235,8 @@ const ParticipantList = () => {
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
+                          onClick={() => setSelectedId(row.original.id)}
+                      className="cursor-pointer hover:bg-gray-100"
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>

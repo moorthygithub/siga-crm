@@ -15,6 +15,10 @@ import CreateNews from "./app/latestNews/CreateNews";
 import EditNews from "./app/latestNews/EditNews";
 import AmountView from "./app/amount/AmountView";
 import BusinessView from "./app/buisnesOpp/BusinessView";
+import JobOfferedView from "./app/jobOffered/JobOfferedView";
+import JobRequireView from "./app/jobRequire/JobRequireView";
+import DirectoryView from "./app/directory/DirectoryView";
+import ParticipationList from "./app/participation/ParticipationList";
 
 
 
@@ -34,14 +38,19 @@ function App() {
         <Route path="/home" element={<Home />} />
         {/* Registration  */}
         <Route path="/registration" element={<RegistrationList />} />
-        {/* Participants  */}
+        {/* id card  */}
         <Route path="/participant" element={<ParticipantList />} />
+        {/* participtations */}
+        <Route path="/participation" element={<ParticipationList />} />
         {/* Job Offered  */}
         <Route path="/job-offered" element={<JobOfferedList />} />
+        <Route path="/job-offered-view/:id" element={<JobOfferedView />} />
         {/* Job Require  */}
         <Route path="/job-require" element={<JobRequireList />} />
+        <Route path="/job-require-view/:id" element={<JobRequireView />} />
         {/* directory  */}
         <Route path="/directory" element={<DirectoryList />} />
+        <Route path="/directory-view/:id" element={<DirectoryView />} />
         {/* Business Opp.  */}
         <Route path="/business-opp" element={<BusinessOppList />} />
         <Route path="/business-opp-view/:id" element={<BusinessView />} />

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import Page from '../dashboard/page'
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import {
   flexRender,
@@ -16,6 +16,7 @@ import {
   MoreHorizontal,
   Eye,
   Loader2,
+  Delete,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -41,14 +42,16 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from '@/config/BaseUrl';
 import { useNavigate } from 'react-router-dom';
+
+
 const BusinessOppList = () => {
   const {
-    data: registrations,
+    data: business,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["registrations"],
+    queryKey: ["business"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await axios.get(`${BASE_URL}/api/panel-fetch-busopp`, {
@@ -64,6 +67,27 @@ const BusinessOppList = () => {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const navigate = useNavigate()
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      const token = localStorage.getItem("token");
+      await axios.delete(`https://agsrebuild.store/public/api/panel-delete-busopp/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["business"]); // Refresh the list after deletion
+    },
+    onError: (error) => {
+      console.error("Error deleting item:", error);
+    },
+  });
+  const handleDelete = (e,id)=>{
+    e.preventDefault()
+    // https://agsrebuild.store/public/api/panel-delete-busopp/${id}
+    if (window.confirm("Are you sure you want to delete this item?")) {
+      deleteMutation.mutate(id);
+    }
+  }
 
   // Define columns for the table
   const columns = [
@@ -137,17 +161,22 @@ const BusinessOppList = () => {
         const registration = row.original.id;
 
         return (
+          <div className='flex flex-row'>
           <Button
             variant="ghost"
             size="icon"
-            // onClick={() => {
-            //   // Implement view details functionality
-            //   console.log("View registration details:", registration);
-            // }}
             onClick={()=>navigate(`/business-opp-view/${registration}`)}
           >
             <Eye className="h-4 w-4" />
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e)=>handleDelete(e,registration)}
+          >
+            <Delete className="h-4 w-4" />
+          </Button>
+          </div>
         );
       },
     },
@@ -155,7 +184,7 @@ const BusinessOppList = () => {
 
   // Create the table instance
   const table = useReactTable({
-    data: registrations || [],
+    data: business || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
