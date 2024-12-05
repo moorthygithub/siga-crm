@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from '@/config/BaseUrl';
+import { useNavigate } from 'react-router-dom';
 
 const AmountList = () => {
   const {
@@ -63,6 +64,7 @@ const AmountList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const navigate = useNavigate()
 
   // Define columns for the table
   const columns = [
@@ -133,10 +135,11 @@ const AmountList = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              // Implement view details functionality
-              console.log("View registration details:", registration);
-            }}
+            // onClick={() => {
+            //   // Implement view details functionality
+            //   console.log("View registration details:", registration);
+            // }}
+            onClick = {()=>navigate(`/amount-view/${registration}`)}
           >
             <Eye className="h-4 w-4" />
           </Button>
@@ -177,7 +180,7 @@ const AmountList = () => {
         <div className="flex justify-center items-center h-full">
           <Button disabled>
             <Loader2 className=" h-4 w-4 animate-spin" />
-            Loading Amount
+            Loading Payment
           </Button>
         </div>
       </Page>
@@ -191,7 +194,7 @@ const AmountList = () => {
         <Card className="w-full max-w-md mx-auto mt-10">
           <CardHeader>
             <CardTitle className="text-destructive">
-              Error Fetching Amount
+              Error Fetching Payment
             </CardTitle>
           </CardHeader>
           <CardContent>
