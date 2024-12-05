@@ -94,7 +94,7 @@ export function AppSidebar({ ...props }) {
       
       {
         title: "Latest News",
-        url: "#",
+        url: "/latest-news",
         icon: SquareTerminal,
         
       },

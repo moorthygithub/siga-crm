@@ -10,6 +10,9 @@ import JobRequireList from "./app/jobRequire/JobRequireList";
 import DirectoryList from "./app/directory/DirectoryList";
 import BusinessOppList from "./app/buisnesOpp/BusinessOppList";
 import AmountList from "./app/amount/AmountList";
+import LatestNewsList from "./app/latestNews/LatestNewsList";
+import CreateNews from "./app/latestNews/CreateNews";
+import EditNews from "./app/latestNews/EditNews";
 
 
 
@@ -41,6 +44,10 @@ function App() {
         <Route path="/business-opp" element={<BusinessOppList />} />
         {/* Amount  */}
         <Route path="/amount" element={<AmountList />} />
+        {/* latest news  */}
+        <Route path="/latest-news" element={<LatestNewsList />} />
+        <Route path="/create-news" element={<CreateNews />} />
+        <Route path="/edit-news/:id" element={<EditNews />} />
       </Routes>
       </QueryClientProvider>
     </>
