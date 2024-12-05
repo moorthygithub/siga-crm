@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from '@/config/BaseUrl';
+import { useNavigate } from 'react-router-dom';
 const BusinessOppList = () => {
   const {
     data: registrations,
@@ -62,31 +63,11 @@ const BusinessOppList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const navigate = useNavigate()
 
   // Define columns for the table
   const columns = [
-    // {
-    //   id: "select",
-    //   header: ({ table }) => (
-    //     <Checkbox
-    //       checked={
-    //         table.getIsAllPageRowsSelected() ||
-    //         (table.getIsSomePageRowsSelected() && "indeterminate")
-    //       }
-    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //       aria-label="Select all"
-    //     />
-    //   ),
-    //   cell: ({ row }) => (
-    //     <Checkbox
-    //       checked={row.getIsSelected()}
-    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-    //       aria-label="Select row"
-    //     />
-    //   ),
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
+   
     {
       accessorKey: "id",
       header: "ID",
@@ -159,10 +140,11 @@ const BusinessOppList = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              // Implement view details functionality
-              console.log("View registration details:", registration);
-            }}
+            // onClick={() => {
+            //   // Implement view details functionality
+            //   console.log("View registration details:", registration);
+            // }}
+            onClick={()=>navigate(`/business-opp-view/${registration}`)}
           >
             <Eye className="h-4 w-4" />
           </Button>

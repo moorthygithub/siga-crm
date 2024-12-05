@@ -13,6 +13,8 @@ import AmountList from "./app/amount/AmountList";
 import LatestNewsList from "./app/latestNews/LatestNewsList";
 import CreateNews from "./app/latestNews/CreateNews";
 import EditNews from "./app/latestNews/EditNews";
+import AmountView from "./app/amount/AmountView";
+import BusinessView from "./app/buisnesOpp/BusinessView";
 
 
 
@@ -42,8 +44,10 @@ function App() {
         <Route path="/directory" element={<DirectoryList />} />
         {/* Business Opp.  */}
         <Route path="/business-opp" element={<BusinessOppList />} />
+        <Route path="/business-opp-view/:id" element={<BusinessView />} />
         {/* Amount  */}
         <Route path="/amount" element={<AmountList />} />
+        <Route path="/amount-view/:id" element={<AmountView />} />
         {/* latest news  */}
         <Route path="/latest-news" element={<LatestNewsList />} />
         <Route path="/create-news" element={<CreateNews />} />
