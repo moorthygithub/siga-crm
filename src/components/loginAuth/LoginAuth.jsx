@@ -44,10 +44,23 @@ export default function LoginAuth() {
           localStorage.setItem("name", res.data.UserInfo.user.name);
           localStorage.setItem("username", res.data.UserInfo.user.mobile);
           localStorage.setItem("email", res.data.UserInfo.user.email);
-
-          // Navigate to home page
-          navigate("/home");
-
+          localStorage.setItem("userType", res.data.UserInfo.user.user_type);
+          const userType = localStorage.getItem("userType");
+          console.log('Stored userType:', userType);
+          switch(userType) {
+            case "1":
+              navigate("/home");
+              break;
+            case "2":
+              navigate("/amount");
+              break;
+            case "3":
+              navigate("/home");
+              break;
+            default:
+              navigate("/home");
+          }
+       
           // Show success toast
           toast({
             title: "Login Successful",
