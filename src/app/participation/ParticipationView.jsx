@@ -54,7 +54,7 @@ const ParticipationView = ({ id }) => {
   // Loading state
   if (isLoading) {
     return (
-      <Card className="w-full">
+      <Card className="w-full  ">
         <CardHeader>
           <CardTitle>Loading Details</CardTitle>
         </CardHeader>
@@ -101,8 +101,8 @@ const ParticipationView = ({ id }) => {
           </p>
         </div>
       </CardHeader>
-      <CardContent className="max-h-[24rem] overflow-y-auto">
-        <div className="space-y-4">
+      <CardContent className="max-h-[24rem] mt-2  overflow-y-auto">
+        <div className="space-y-4   ">
           {/* Firm Information Section */}
           <div>
             <h3 className="text-lg font-semibold mb-2 border-b pb-1">

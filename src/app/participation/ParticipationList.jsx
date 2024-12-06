@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Page from "../dashboard/page";
 import ParticipationView from "./ParticipationView";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
   flexRender,
@@ -17,6 +17,9 @@ import {
   MoreHorizontal,
   Eye,
   Loader2,
+  Delete,
+  Edit,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -41,18 +44,35 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from "@/config/BaseUrl";
+import { useNavigate } from "react-router-dom";
 const ParticipationList = () => {
+  const [selectedEvent, setSelectedEvent] = useState("30");
+  const queryClient = useQueryClient()
+  const { data: dateFilter } = useQuery({
+    queryKey: ["dateFilter"],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-participantGroup`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data.event;
+    },
+  });
+
   const {
     data: participants,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["participants"],
+    queryKey: ["participants", selectedEvent],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${BASE_URL}/api/panel-fetch-participant`,
+        `${BASE_URL}/api/panel-fetch-participant-list/${selectedEvent}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -61,12 +81,40 @@ const ParticipationList = () => {
     },
   });
 
+  const handleDateFilter = (event) => {
+    setSelectedEvent(event);
+  };
+
   // State for table management
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [selectedId, setSelectedId] = useState(null);
+  const navigate = useNavigate();
+  const [isViewExpanded, setIsViewExpanded] = useState(false);
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${BASE_URL}/api/panel-delete-participant/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["participants"]); 
+    },
+    onError: (error) => {
+      console.error("Error deleting item:", error);
+    },
+  });
+  const handleDelete = (e,id)=>{
+    e.preventDefault()
+    if (window.confirm("Are you sure you want to delete this item?")) {
+      deleteMutation.mutate(id);
+    }
+  }
+
 
   // Define columns for the table
   const columns = [
@@ -105,8 +153,33 @@ const ParticipationList = () => {
       header: "Email",
       cell: ({ row }) => <div>{row.getValue("profile_email")}</div>,
     },
+    {
+      id: "actions",
 
-   
+      header: "Action",
+      cell: ({ row }) => {
+        const registration = row.original.id;
+
+        return (
+          <div className='flex flex-row'>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={()=>navigate(`/edit-participants/${registration}`)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e)=>handleDelete(e,registration)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+          </div>
+        );
+      },
+    },
   ];
 
   // Create the table instance
@@ -133,6 +206,11 @@ const ParticipationList = () => {
       },
     },
   });
+  // Handle row click
+  const handleRowClick = (id) => {
+    setSelectedId(id);
+    setIsViewExpanded(true);
+  };
 
   // Render loading state
   if (isLoading) {
@@ -169,9 +247,15 @@ const ParticipationList = () => {
   }
   return (
     <Page>
-      <div className=" flex w-full p-4 gap-2 ">
+      <div className=" flex w-full p-4 gap-2 relative ">
         {/* registration lIst  */}
-        <div className="w-[60%]">
+        <div
+          className={`
+            ${isViewExpanded ? "w-[70%]" : "w-full"} 
+            transition-all duration-300 ease-in-out 
+            pr-4
+          `}
+        >
           <div className="flex text-left text-xl text-gray-800 font-[400]">
             Participants List
           </div>
@@ -185,6 +269,7 @@ const ParticipationList = () => {
               }}
               className="max-w-sm"
             />
+            {/* coulmn filter  */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">
@@ -211,6 +296,35 @@ const ParticipationList = () => {
                   })}
               </DropdownMenuContent>
             </DropdownMenu>
+            {/* date filter  */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-2">
+                  {selectedEvent ? `Event ${selectedEvent}` : "Date Filter"}{" "}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {dateFilter?.map((item, index) => (
+                  <DropdownMenuItem
+                    key={index}
+                    // You might want to add an onClick handler to actually filter the data
+                    onClick={() => handleDateFilter(item.event)}
+                    className={
+                      selectedEvent === item.event ? "bg-gray-100" : ""
+                    }
+                  >
+                    Event {item.event}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {/* create participant button */}
+            <div onClick={() => navigate(`/create-participants`)}>
+              <Button variant="default" className="ml-2">
+                Create Participant
+              </Button>
+            </div>
           </div>
           {/* table  */}
           <div className="rounded-md border">
@@ -239,7 +353,7 @@ const ParticipationList = () => {
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
-                      onClick={() => setSelectedId(row.original.id)}
+                      onClick={() => handleRowClick(row.original.id)}
                       className="cursor-pointer hover:bg-gray-100"
                     >
                       {row.getVisibleCells().map((cell) => (
@@ -291,9 +405,42 @@ const ParticipationList = () => {
             </div>
           </div>
         </div>
-        <div className="w-[40%] p-4  m-auto border-l">
-          <ParticipationView id={selectedId} />
-        </div>
+
+        {isViewExpanded && (
+          <div
+            className={`
+              w-[30%] 
+              p-4 
+              border-l 
+              transition-all 
+              duration-300 
+              ease-in-out 
+              absolute 
+              right-0 
+             
+            
+              ${
+                isViewExpanded
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 translate-x-full"
+              }
+            `}
+          >
+            <div className="flex justify-end mb-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setIsViewExpanded(false);
+                  setSelectedId(null);
+                }}
+              >
+                ✕
+              </Button>
+            </div>
+            <ParticipationView id={selectedId} />
+          </div>
+        )}
       </div>
     </Page>
   );

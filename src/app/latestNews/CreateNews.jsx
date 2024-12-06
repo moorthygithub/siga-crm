@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useNavigate } from 'react-router-dom';
+import BASE_URL from '@/config/BaseUrl';
 
 const CreateNews = () => {
   const { register, handleSubmit, control, reset, setValue, formState: { errors } } = useForm();
@@ -31,10 +32,9 @@ const CreateNews = () => {
         formData.append(key, data[key]);
       });
       
-      // Add date separately
-      formData.append('news_date', newsDate.toISOString().split('T')[0]);
+    
 
-      const response = await axios.post('https://agsrebuild.store/public/api/panel-create-news', formData, {
+      const response = await axios.post(`${BASE_URL}/api/panel-create-news`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -67,7 +67,7 @@ const CreateNews = () => {
 
   return (
    <Page>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-0 md:py-8">
         <h1 className="text-2xl font-bold mb-6 flex items-center">
           <PlusCircle className="mr-2" /> Create News Article
         </h1>
@@ -165,6 +165,7 @@ const CreateNews = () => {
       
 
           {/* Submit Button */}
+          <div className="flex flex-row mt-6 gap-6">
           <Button 
             type="submit" 
             disabled={createNewsMutation.isPending}
@@ -173,6 +174,13 @@ const CreateNews = () => {
             <Save className="mr-2" /> 
             {createNewsMutation.isPending ? 'Saving...' : 'Create News Article'}
           </Button>
+          <Button
+             onClick={()=>navigate('/latest-news')}
+              className="w-full "
+            >
+             Cancel
+            </Button>
+            </div>
         </form>
       </div>
    </Page>

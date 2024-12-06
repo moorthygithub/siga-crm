@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { Loader2 } from "lucide-react"
 import axios from 'axios'
+import BASE_URL from '@/config/BaseUrl'
 
 const MetricCard = ({ title, value, icon: Icon, trend }) => (
   <Card>
@@ -35,7 +36,7 @@ const Home = () => {
     queryKey: ['dashboardData'],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await axios.get('https://agsrebuild.store/public/api/panel-fetch-dashboard/202425', {
+      const response = await axios.get(`${BASE_URL}/api/panel-fetch-dashboard/202425`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       return response.data
