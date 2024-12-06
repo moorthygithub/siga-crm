@@ -50,3 +50,8 @@ const PrintableComponent = ({ data }) => {
 };
 
 export default PrintableComponent;
+
+
+
+
+

@@ -19,6 +19,8 @@ import JobOfferedView from "./app/jobOffered/JobOfferedView";
 import JobRequireView from "./app/jobRequire/JobRequireView";
 import DirectoryView from "./app/directory/DirectoryView";
 import ParticipationList from "./app/participation/ParticipationList";
+import CreateParticipation from "./app/participation/CreateParticipation";
+import EditParticipation from "./app/participation/EditParticipation";
 
 
 
@@ -42,6 +44,8 @@ function App() {
         <Route path="/participant" element={<ParticipantList />} />
         {/* participtations */}
         <Route path="/participation" element={<ParticipationList />} />
+        <Route path="/create-participants" element={<CreateParticipation />} />
+        <Route path="/edit-participants/:id" element={<EditParticipation />} />
         {/* Job Offered  */}
         <Route path="/job-offered" element={<JobOfferedList />} />
         <Route path="/job-offered-view/:id" element={<JobOfferedView />} />

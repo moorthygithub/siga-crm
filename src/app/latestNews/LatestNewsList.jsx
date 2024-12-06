@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Page from "../dashboard/page";
 import BASE_URL from "@/config/BaseUrl";
-import { useQuery } from "@tanstack/react-query";
+import {useMutation, useQuery ,useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
   flexRender,
@@ -19,6 +19,8 @@ import {
   Loader2,
   FilePlus,
   FilePenLine,
+  Delete,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -45,6 +47,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import NewView from "./NewView";
 const LatestNewsList = () => {
+  const queryClient = useQueryClient();
   const {
     data: registrations,
     isLoading,
@@ -71,6 +74,28 @@ const LatestNewsList = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [selectedId, setSelectedId] = useState(null);
   const navigate = useNavigate();
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${BASE_URL}/api/panel-delete-news/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["registrations"]);
+      
+    },
+    onError: (error) => {
+      console.error("Error deleting item:", error);
+    },
+  });
+  const handleDelete = (e,id)=>{
+    e.preventDefault()
+    // https://agsrebuild.store/public/api/panel-delete-busopp/${id}
+    if (window.confirm("Are you sure you want to delete this item?")) {
+      deleteMutation.mutate(id);
+    }
+  }
   // Define columns for the table
   const columns = [
     {
@@ -104,7 +129,7 @@ const LatestNewsList = () => {
         const registration = row.original.id;
 
         return (
-          <>
+          <div className="flex flex-row">
             
             <Button
               variant="ghost"
@@ -113,8 +138,14 @@ const LatestNewsList = () => {
             >
               <FilePenLine className="h-4 w-4" />
             </Button>
-          
-          </>
+            <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e)=>handleDelete(e,registration)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+          </div>
         );
       },
     },

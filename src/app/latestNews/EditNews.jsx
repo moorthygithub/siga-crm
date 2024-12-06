@@ -14,20 +14,23 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Edit, Save, CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format ,parseISO} from 'date-fns';
 import { cn } from "@/lib/utils";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
+import BASE_URL from '@/config/BaseUrl';
 const EditNews = () => {
      // Fetch news by ID
      const {id} = useParams()
      const { toast } = useToast();
      const navigate = useNavigate()
+     const [calendarMonth, setCalendarMonth] = React.useState(new Date());
   const { data, isLoading, error } = useQuery({
     queryKey: ['newsDetails', 1],
     queryFn: async () => {
         const token = localStorage.getItem('token')
-      const response = await axios.get(`https://agsrebuild.store/public/api/panel-fetch-news-by-id/${id}`, {
+      const response = await axios.get(`${BASE_URL}/api/panel-fetch-news-by-id/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data.news;
@@ -40,19 +43,21 @@ const EditNews = () => {
     mutationFn: async (updatedNews) => {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      
+      const correctDate = new Date(updatedNews.news_date);
+      correctDate.setHours(12, 0, 0, 0);
       // Append all required fields to FormData
       formData.append('news_heading', updatedNews.news_heading);
       formData.append('news_sub_title', updatedNews.news_sub_title);
       formData.append('news_department', updatedNews.news_department);
       formData.append('news_details', updatedNews.news_details);
       formData.append('news_link', updatedNews.news_link);
-      formData.append('news_date', format(updatedNews.news_date, 'yyyy-MM-dd'));
+      formData.append('news_date', format(correctDate, 'yyyy-MM-dd'))
       formData.append('news_status', updatedNews.news_status);
+      formData.append('news_id', updatedNews.id);
 
     
-      const response = await axios.put(
-        `https://agsrebuild.store/public/api/panel-update-news/${id}`, 
+      const response = await axios.post(
+        `${BASE_URL}/api/panel-update-news`, 
         formData,
         {
           headers: { 
@@ -95,14 +100,17 @@ const EditNews = () => {
     news_department: '',
     news_status: '1'
   });
+ 
 
   // Update form data when fetched data is available
   React.useEffect(() => {
     if (data) {
+      const parsedDate = data.news_date ? parseISO(data.news_date) : new Date();
       setFormData({
         ...data,
-        news_date: new Date(data.news_date)
+        news_date: parsedDate
       });
+      setCalendarMonth(parsedDate);
     }
   }, [data]);
 
@@ -154,14 +162,36 @@ const EditNews = () => {
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block mb-2">News Date</label>
-              <div className="relative">
-                <Input
-                  value={formData.news_date ? format(formData.news_date, 'PPP') : ''}
-                  readOnly
-                  className="pr-10"
-                />
-                <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.news_date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.news_date
+                      ? format(formData.news_date, "PPP")
+                      : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={formData.news_date}
+                    onSelect={(date) => {
+                      setFormData((prev) => ({ ...prev, news_date: date }));
+                      // Update calendar month when a new date is selected
+                      setCalendarMonth(date);
+                    }}
+                    month={calendarMonth}
+                    onMonthChange={setCalendarMonth}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>

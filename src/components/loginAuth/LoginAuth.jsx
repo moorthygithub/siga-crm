@@ -15,7 +15,6 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import BASE_URL from '@/config/BaseUrl';
 import { Loader } from 'lucide-react';
-import { Google } from '@mui/icons-material';
 
 export default function LoginAuth() {
   const [email, setEmail] = useState("");

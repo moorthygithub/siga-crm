@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import Page from '../dashboard/page'
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery ,useQueryClient} from "@tanstack/react-query";
 import axios from "axios";
 import {
   flexRender,
@@ -17,6 +17,7 @@ import {
   Eye,
   Loader2,
   Delete,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 const BusinessOppList = () => {
+  const queryClient = useQueryClient();
   const {
     data: business,
     isLoading,
@@ -67,10 +69,11 @@ const BusinessOppList = () => {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const navigate = useNavigate()
+
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://agsrebuild.store/public/api/panel-delete-busopp/${id}`, {
+      await axios.delete(`${BASE_URL}/api/panel-delete-busopp/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
     },
@@ -88,6 +91,19 @@ const BusinessOppList = () => {
       deleteMutation.mutate(id);
     }
   }
+
+  const handleCompanyStatusLabel = (status) => {
+    switch (status) {
+      case 0:
+        return "Pending";
+      case 1:
+        return "Cleared";
+      case 2:
+        return "Expired";
+      default:
+        return "Unknown";
+    }
+  };
 
   // Define columns for the table
   const columns = [
@@ -140,6 +156,7 @@ const BusinessOppList = () => {
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("buss_status");
+        const label = handleCompanyStatusLabel(status)
         return (
           <span
             className={`px-2 py-1 rounded text-xs ${
@@ -148,7 +165,7 @@ const BusinessOppList = () => {
                 : "bg-gray-100 text-gray-800"
             }`}
           >
-            {status }
+            {label }
           </span>
         );
       },
@@ -174,7 +191,7 @@ const BusinessOppList = () => {
             size="icon"
             onClick={(e)=>handleDelete(e,registration)}
           >
-            <Delete className="h-4 w-4" />
+            <Trash2 className="h-4 w-4" />
           </Button>
           </div>
         );
