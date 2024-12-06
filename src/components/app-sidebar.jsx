@@ -28,7 +28,12 @@ import { NavMainUpdate } from "./nav-main-update";
 
 
 export function AppSidebar({ ...props }) {
-  const {emailL,nameL} = React.useContext(ContextPanel)
+  // const {emailL,nameL,userType} = React.useContext(ContextPanel)
+  const nameL = localStorage.getItem("name");
+    const emailL = localStorage.getItem("email");
+    const userType = localStorage.getItem("userType");
+
+ 
 
   const data = {
     user: {
@@ -123,16 +128,37 @@ export function AppSidebar({ ...props }) {
       
     ],
   };
+
+  const renderNavigation = () => {
+    switch(userType) {
+      case '1':
+        return <NavProjects projects={data.projects} />;
+      case '2':
+        return (
+          <>
+            <NavMain items={data.navMain} />
+            <NavMainUpdate items={data.navMain1} />
+          </>
+        );
+      case '3':
+        return (
+          <>
+            <NavProjects projects={data.projects} />
+            <NavMain items={data.navMain} />
+            <NavMainUpdate items={data.navMain1} />
+          </>
+        );
+      default:
+        return null;
+    }
+  };
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-      <NavProjects projects={data.projects} />
-        <NavMain items={data.navMain} />
-        <NavMainUpdate items={data.navMain1} />
-        
+      {renderNavigation()}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

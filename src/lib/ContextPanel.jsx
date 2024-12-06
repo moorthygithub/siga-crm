@@ -11,17 +11,38 @@ const AppProvider = ({ children }) => {
   const formattedDate = format(now, "EEEE, MMMM d, yyyy 'at' h:mm a");
   
   const [loading, setLoading] = useState(false);
-  const matchId = localStorage.getItem("id");
-  const nameL = localStorage.getItem("name");
-  const emailL = localStorage.getItem("email");
+  const [userType, setUserType] = useState(null);
+  const [nameL, setNameL] = useState(null);
+  const [emailL, setEmailL] = useState(null);
+  const [matchId, setMatchId] = useState(null);
+  
+  useEffect(() => {
+    // Fetch stored values and set state
+    const storedUserType = localStorage.getItem("userType");
+    const storedName = localStorage.getItem("name");
+    const storedEmail = localStorage.getItem("email");
+    const storedMatchId = localStorage.getItem("id");
 
+    setUserType(storedUserType);
+    setNameL(storedName);
+    setEmailL(storedEmail);
+    setMatchId(storedMatchId);
+
+    console.log("Loaded from localStorage:", {
+      userType: storedUserType,
+      name: storedName,
+      email: storedEmail,
+      matchId: storedMatchId,
+    });
+  }, []);
+ 
   
 
   return (
     <ContextPanel.Provider
       value={{
        
-       
+        userType,
         nameL,
         emailL,
         matchId,
