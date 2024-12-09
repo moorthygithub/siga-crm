@@ -56,6 +56,8 @@ export default function LoginAuth() {
               break;
             case "3":
               navigate("/home");
+            case "4":
+              navigate("/participation");
               break;
             default:
               navigate("/home");

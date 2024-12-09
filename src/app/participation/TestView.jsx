@@ -59,6 +59,12 @@ const TestView = () => {
 
   return (
     <Page>
+        <button 
+                onClick={handlePrint} 
+                className="px-4 py-2 border border-gray-400 text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Print Details
+              </button>
       <div className="container mx-auto px-4 py-8">
         <div 
           ref={componentRef} 
@@ -78,17 +84,15 @@ const TestView = () => {
                   <span className="mr-4">
                     GST No: {participantDetails.gst_no || 'Not Provided'}
                   </span>
-                  <span>
+                  <span className="mr-4">
                     Event Year: {participantDetails.event_year}
+                  </span>
+                  <span>
+                    Stall No: {participantDetails.profile_stall_no || 'Not Provided'}
                   </span>
                 </div>
               </div>
-              <button 
-                onClick={handlePrint} 
-                className="px-4 py-2 border border-gray-400 text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                Print Details
-              </button>
+              
             </div>
           </div>
 
@@ -191,7 +195,3 @@ const DetailSection = ({ title, details, footer }) => (
 );
 
 export default TestView;
-
-
-
-// it can be use 

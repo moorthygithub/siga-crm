@@ -16,6 +16,7 @@ import {
   MoreHorizontal,
   Eye,
   Loader2,
+  Edit,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -151,6 +152,14 @@ const JobRequireList = () => {
         const registration = row.original.id;
 
         return (
+          <div className="flex flex-row">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={()=>navigate(`/job-require-edit/${registration}`)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -158,6 +167,7 @@ const JobRequireList = () => {
           >
             <Eye className="h-4 w-4" />
           </Button>
+          </div>
         );
       },
     },

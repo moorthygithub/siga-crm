@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import Page from '../dashboard/page'
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import Page from "../dashboard/page";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
   flexRender,
@@ -16,6 +16,7 @@ import {
   MoreHorizontal,
   Eye,
   Loader2,
+  RefreshCcwDot,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -39,10 +40,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import BASE_URL from '@/config/BaseUrl';
-import { useNavigate } from 'react-router-dom';
+import BASE_URL from "@/config/BaseUrl";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const DirectoryList = () => {
+  const queryClient = useQueryClient();
+  const {toast} = useToast()
   const {
     data: registrations,
     isLoading,
@@ -52,10 +56,60 @@ const DirectoryList = () => {
     queryKey: ["registrations"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/panel-fetch-directory`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-directory`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       return response.data.directory;
+    },
+  });
+
+  const handleCompanyStatusLabel = (status) => {
+    switch (status) {
+      case "0":
+        return "Pending";
+      case "1":
+        return "Active";
+      case "2":
+        return "Expired";
+      default:
+        return "Unknown";
+    }
+  };
+
+  // Status Update Mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }) => {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${BASE_URL}/api/panel-update-directory/${id}`,
+        { status },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: (data,variables) => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ["registrations"] });
+      toast({
+        title: "Status Updated",
+        description: `Directory status changed to ${handleCompanyStatusLabel(variables.status) }`,
+        variant: "default",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update status. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Status Update Error:", error);
     },
   });
 
@@ -64,25 +118,22 @@ const DirectoryList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const handleCompanyStatusLabel = (status) => {
-    switch (status) {
-      case 0:
-        return "Pending";
-      case 1:
-        return "Active";
-      case 2:
-        return "Expired";
-      default:
-        return "Unknown";
-    }
+  
+
+  // Status Cycle function
+  const handleStatusToggle = (id, currentStatus) => {
+    // Cycle through statuses: 0 (Pending) -> 1 (Active) -> 2 (Expired) -> 0
+    const statusCycle = ["0", "1", "2"];
+    const currentIndex = statusCycle.indexOf(currentStatus);
+    const nextStatus = statusCycle[(currentIndex + 1) % statusCycle.length];
+
+    updateStatusMutation.mutate({ id, status: nextStatus });
   };
-
 
   // Define columns for the table
   const columns = [
-    
     {
       accessorKey: "id",
       header: "ID",
@@ -126,17 +177,35 @@ const DirectoryList = () => {
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("status");
-        const label = handleCompanyStatusLabel(status)
+        const id = row.getValue("id");
+        const label = handleCompanyStatusLabel(status);
         return (
-          <span
-            className={`px-2 py-1 rounded text-xs ${
-              status == "1"
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {label || "Pending"}
-          </span>
+          <div className="flex items-center space-x-2">
+            <span
+              className={`px-2 py-1 rounded text-xs ${
+                status == "1"
+                  ? "bg-green-100 text-green-800"
+                  : status == "2"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-gray-100 text-gray-800"
+              }`}
+            >
+              {label || "Pending"}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleStatusToggle(id, status)}
+              disabled={updateStatusMutation.isPending}
+            >
+              {updateStatusMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                // "Toggle Status"
+                <RefreshCcwDot className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
         );
       },
     },
@@ -152,7 +221,7 @@ const DirectoryList = () => {
             size="icon"
             onClick={() => {
               // Implement view details functionality
-              navigate(`/directory-view/${registration}`)
+              navigate(`/directory-view/${registration}`);
             }}
           >
             <Eye className="h-4 w-4" />
@@ -221,9 +290,11 @@ const DirectoryList = () => {
     );
   }
   return (
-  <Page>
-    <div className="w-full p-4">
-        <div className="flex text-left text-xl text-gray-800 font-[400]" >Directory List</div>
+    <Page>
+      <div className="w-full p-4">
+        <div className="flex text-left text-xl text-gray-800 font-[400]">
+          Directory List
+        </div>
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
           <Input
@@ -340,8 +411,8 @@ const DirectoryList = () => {
           </div>
         </div>
       </div>
-  </Page>
-  )
-}
+    </Page>
+  );
+};
 
-export default DirectoryList
+export default DirectoryList;

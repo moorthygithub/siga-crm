@@ -21,6 +21,12 @@ import DirectoryView from "./app/directory/DirectoryView";
 import ParticipationList from "./app/participation/ParticipationList";
 import CreateParticipation from "./app/participation/CreateParticipation";
 import EditParticipation from "./app/participation/EditParticipation";
+import JobOfferedEdit from "./app/jobOffered/JobOfferedEdit";
+import JobRequireEdit from "./app/jobRequire/JobRequireEdit";
+import BusinessEdit from "./app/buisnesOpp/BusinessEdit";
+import AmountEdit from "./app/amount/AmountEdit";
+import TestView from "./app/participation/TestView";
+import ParticipantSummary from "./app/report/participantSummary/ParticipantSummary";
 
 
 
@@ -46,25 +52,32 @@ function App() {
         <Route path="/participation" element={<ParticipationList />} />
         <Route path="/create-participants" element={<CreateParticipation />} />
         <Route path="/edit-participants/:id" element={<EditParticipation />} />
+        <Route path="/view-participants/:id" element={<TestView />} />
         {/* Job Offered  */}
         <Route path="/job-offered" element={<JobOfferedList />} />
         <Route path="/job-offered-view/:id" element={<JobOfferedView />} />
+        <Route path="/job-offered-edit/:id" element={<JobOfferedEdit />} />
         {/* Job Require  */}
         <Route path="/job-require" element={<JobRequireList />} />
         <Route path="/job-require-view/:id" element={<JobRequireView />} />
+        <Route path="/job-require-edit/:id" element={<JobRequireEdit />} />
         {/* directory  */}
         <Route path="/directory" element={<DirectoryList />} />
         <Route path="/directory-view/:id" element={<DirectoryView />} />
         {/* Business Opp.  */}
         <Route path="/business-opp" element={<BusinessOppList />} />
         <Route path="/business-opp-view/:id" element={<BusinessView />} />
+        <Route path="/business-opp-edit/:id" element={<BusinessEdit />} />
         {/* Amount  */}
         <Route path="/amount" element={<AmountList />} />
         <Route path="/amount-view/:id" element={<AmountView />} />
+        <Route path="/amount-edit/:id" element={<AmountEdit />} />
         {/* latest news  */}
         <Route path="/latest-news" element={<LatestNewsList />} />
         <Route path="/create-news" element={<CreateNews />} />
         <Route path="/edit-news/:id" element={<EditNews />} />
+        {/* report  */}
+        <Route path="/participant-summary" element={<ParticipantSummary />} />
       </Routes>
       </QueryClientProvider>
     </>

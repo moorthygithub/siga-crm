@@ -47,6 +47,7 @@ const PROFILE_STATUS_OPTIONS = [
   { value: "Pending", label: "Pending" },
   { value: "Confirm", label: "Confirm" },
   { value: "Cancel", label: "Cancel" },
+  { value: "Stall Issued", label: "Stall Issued" },
 ];
 
 const participationSchema = z.object({

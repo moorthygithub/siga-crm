@@ -18,6 +18,7 @@ import {
   Loader2,
   Delete,
   Trash2,
+  Edit,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -94,11 +95,11 @@ const BusinessOppList = () => {
 
   const handleCompanyStatusLabel = (status) => {
     switch (status) {
-      case 0:
+      case '0':
         return "Pending";
-      case 1:
+      case '1':
         return "Cleared";
-      case 2:
+      case '2':
         return "Expired";
       default:
         return "Unknown";
@@ -179,6 +180,13 @@ const BusinessOppList = () => {
 
         return (
           <div className='flex flex-row'>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={()=>navigate(`/business-opp-edit/${registration}`)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
