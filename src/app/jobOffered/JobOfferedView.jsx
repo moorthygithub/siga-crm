@@ -53,7 +53,7 @@ const JobOfferedView = () => {
           <div className="flex justify-center items-center h-full">
             <Button disabled>
               <Loader2 className=" h-4 w-4 animate-spin" />
-              Loading Payment View
+              Loading Job Offered View
             </Button>
           </div>
         </Page>
@@ -64,7 +64,7 @@ const JobOfferedView = () => {
           <Card className="w-full max-w-md mx-auto mt-10">
             <CardHeader>
               <CardTitle className="text-destructive">
-                Error Fetching Payment View
+                Error Fetching Job Offered View
               </CardTitle>
             </CardHeader>
             <CardContent>

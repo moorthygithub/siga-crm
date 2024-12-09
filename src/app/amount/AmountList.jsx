@@ -16,6 +16,7 @@ import {
   MoreHorizontal,
   Eye,
   Loader2,
+  Edit,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -67,11 +68,11 @@ const AmountList = () => {
   const navigate = useNavigate()
   const handleCompanyStatusLabel = (status) => {
     switch (status) {
-      case 0:
+      case '0':
         return "Pending";
-      case 1:
+      case '1':
         return "Active";
-      case 2:
+      case '2':
         return "Expired";
       default:
         return "Unknown";
@@ -145,6 +146,14 @@ const AmountList = () => {
         const registration = row.original.id;
 
         return (
+          <div className='flex flex-row'>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick = {()=>navigate(`/amount-edit/${registration}`)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -156,6 +165,7 @@ const AmountList = () => {
           >
             <Eye className="h-4 w-4" />
           </Button>
+          </div>
         );
       },
     },

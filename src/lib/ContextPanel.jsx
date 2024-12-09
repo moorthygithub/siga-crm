@@ -27,13 +27,6 @@ const AppProvider = ({ children }) => {
     setNameL(storedName);
     setEmailL(storedEmail);
     setMatchId(storedMatchId);
-
-    console.log("Loaded from localStorage:", {
-      userType: storedUserType,
-      name: storedName,
-      email: storedEmail,
-      matchId: storedMatchId,
-    });
   }, []);
  
   

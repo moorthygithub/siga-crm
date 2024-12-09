@@ -20,6 +20,7 @@ import {
   Delete,
   Edit,
   Trash2,
+  RefreshCcwDot,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -45,9 +46,22 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from "@/config/BaseUrl";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+
+const Status_Filter = [
+  { value: "Pending", label: "Pending" },
+  { value: "Confirm", label: "Confirm" },
+  { value: "Stall Issued", label: "Stall Issued" },
+  { value: "Cancel", label: "Cancel" },
+];
 const ParticipationList = () => {
+  const { toast } = useToast();
   const [selectedEvent, setSelectedEvent] = useState("30");
-  const queryClient = useQueryClient()
+  const [selectedStatus, setSelectedStatus] = useState("Pending");
+  const queryClient = useQueryClient();
+  const STATUS_CYCLE = ["Pending", "Confirm", "Stall Issued", "Cancel"];
+  const usertype = Number(localStorage.getItem("userType")); 
+  const isRestrictedUser = usertype === 4;
   const { data: dateFilter } = useQuery({
     queryKey: ["dateFilter"],
     queryFn: async () => {
@@ -68,7 +82,7 @@ const ParticipationList = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["participants", selectedEvent],
+    queryKey: ["participants", selectedEvent, selectedStatus],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await axios.get(
@@ -77,12 +91,18 @@ const ParticipationList = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      return response.data.participant;
+      return response.data.participant.filter(
+        (participant) => participant.profile_status === selectedStatus
+      );
     },
   });
 
   const handleDateFilter = (event) => {
     setSelectedEvent(event);
+  };
+
+  const handleStatusFilter = (status) => {
+    setSelectedStatus(status);
   };
 
   // State for table management
@@ -94,6 +114,41 @@ const ParticipationList = () => {
   const navigate = useNavigate();
   const [isViewExpanded, setIsViewExpanded] = useState(false);
 
+  // Improved Status Update Mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }) => {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${BASE_URL}/api/panel-update-participant-status/${id}`,
+        { profile_status: status }, // Ensure status is not null
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch queries to update the UI
+      queryClient.invalidateQueries({ queryKey: ["participants"] });
+      toast({
+        title: "Status Updated",
+        description: `Participant status changed to ${variables.status}`,
+        variant: "default",
+      });
+    },
+    onError: (error) => {
+      console.error("Status Update Error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update status. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
       const token = localStorage.getItem("token");
@@ -102,19 +157,28 @@ const ParticipationList = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["participants"]); 
+      queryClient.invalidateQueries(["participants"]);
     },
     onError: (error) => {
       console.error("Error deleting item:", error);
     },
   });
-  const handleDelete = (e,id)=>{
-    e.preventDefault()
+  const handleDelete = (e, id) => {
+    e.preventDefault();
     if (window.confirm("Are you sure you want to delete this item?")) {
       deleteMutation.mutate(id);
     }
-  }
+  };
 
+  // Status Cycle function
+  const handleStatusToggle = (id, currentStatus) => {
+    const currentIndex = STATUS_CYCLE.indexOf(currentStatus);
+    const nextStatus = STATUS_CYCLE[(currentIndex + 1) % STATUS_CYCLE.length];
+    updateStatusMutation.mutate({
+      id,
+      status: nextStatus || "Pending",
+    });
+  };
 
   // Define columns for the table
   const columns = [
@@ -149,10 +213,56 @@ const ParticipationList = () => {
     },
 
     {
-      accessorKey: "profile_email",
-      header: "Email",
-      cell: ({ row }) => <div>{row.getValue("profile_email")}</div>,
+      accessorKey: "rep1_mobile",
+      header: "Mobile",
+      cell: ({ row }) => <div>{row.getValue("rep1_mobile")}</div>,
     },
+    {
+      accessorKey: "profile_status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("profile_status");
+        const id = row.getValue("id");
+
+        return (
+          <div className="flex items-center space-x-2">
+            <span
+              className={`px-2 py-1 rounded text-xs ${
+                status == "Pending"
+                  ? "bg-green-100 text-green-800"
+                  : status == "Confirm"
+                  ? "bg-blue-100 text-blue-800"
+                  : status == "Cancel"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-gray-100 text-gray-800"
+              }`}
+            >
+              {status}
+            </span>
+            {!isRestrictedUser && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleStatusToggle(id, status);
+              }}
+              disabled={updateStatusMutation.isPending}
+            >
+              {updateStatusMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCcwDot className="w-4 h-4" />
+              )}
+            </Button>
+            )}
+          </div>
+        );
+      },
+    },
+    ...(isRestrictedUser
+      ? []
+      : [
     {
       id: "actions",
 
@@ -161,25 +271,36 @@ const ParticipationList = () => {
         const registration = row.original.id;
 
         return (
-          <div className='flex flex-row'>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={()=>navigate(`/edit-participants/${registration}`)}
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e)=>handleDelete(e,registration)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="flex flex-row">
+            {/* <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(`/view-participants/${registration}`)}
+            >
+              <Eye className="h-4 w-4" />
+            </Button> */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(`/edit-participants/${registration}`)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleDelete(e, registration)}}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         );
       },
     },
+  ]),
+
   ];
 
   // Create the table instance
@@ -319,12 +440,36 @@ const ParticipationList = () => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            {/* status Filter  */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-2">
+                  {selectedStatus || "Status"}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {Status_Filter?.map((item, index) => (
+                  <DropdownMenuItem
+                    key={index}
+                    onClick={() => handleStatusFilter(item.label)}
+                    className={
+                      selectedStatus == item.label ? "bg-gray-100" : ""
+                    }
+                  >
+                    {item.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             {/* create participant button */}
+            {!isRestrictedUser && (
             <div onClick={() => navigate(`/create-participants`)}>
               <Button variant="default" className="ml-2">
                 Create Participant
               </Button>
             </div>
+                )}
           </div>
           {/* table  */}
           <div className="rounded-md border">

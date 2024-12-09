@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/sidebar";
 import { ContextPanel } from "@/lib/ContextPanel";
 import { NavMainUpdate } from "./nav-main-update";
+import { NavMainReport } from "./nav-main-report";
 
 
 export function AppSidebar({ ...props }) {
@@ -104,6 +105,18 @@ export function AppSidebar({ ...props }) {
         
       },
     ],
+    navReport: [
+    
+    
+      {
+        title: "Participant Summary",
+        url: "/participant-summary",
+        icon: Bot,
+        
+      },
+      
+     
+    ],
     projects: [
       {
         name: "Dashboard",
@@ -146,6 +159,14 @@ export function AppSidebar({ ...props }) {
             <NavProjects projects={data.projects} />
             <NavMain items={data.navMain} />
             <NavMainUpdate items={data.navMain1} />
+            <NavMainReport items={data.navReport} />
+          </>
+        );
+      case '4':
+        return (
+          <>
+            <NavProjects projects={data.projects.filter(project => project.name === "Participant")} />
+            <NavMainReport items={data.navReport} />
           </>
         );
       default:
