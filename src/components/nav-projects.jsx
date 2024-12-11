@@ -26,10 +26,11 @@ export function NavProjects({
     hover: { scale: 1.05 },
   };
   return (
-    (<SidebarGroup className="group-data-[collapsible=icon]:hidden">
+    (<SidebarGroup >
       <SidebarGroupLabel>Event</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => (
+          
            <motion.div
            variants={buttonVariants}
            whileHover="hover" 
@@ -37,7 +38,7 @@ export function NavProjects({
        
          >
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild  tooltip={item.name}>
            
               <Link to={item.url}>
                 <item.icon />
