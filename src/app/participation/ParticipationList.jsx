@@ -209,7 +209,7 @@ const ParticipationList = () => {
     {
       accessorKey: "manufacturer_name",
       header: "Manufacturer",
-      cell: ({ row }) => <div>{row.getValue("manufacturer_name")}</div>,
+      cell: ({ row }) => <div>{row.getValue("manufacturer_name") || "-"}</div>,
     },
 
     {
@@ -272,13 +272,13 @@ const ParticipationList = () => {
 
         return (
           <div className="flex flex-row">
-            {/* <Button
+            <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate(`/view-participants/${registration}`)}
             >
               <Eye className="h-4 w-4" />
-            </Button> */}
+            </Button>
             <Button
               variant="ghost"
               size="icon"

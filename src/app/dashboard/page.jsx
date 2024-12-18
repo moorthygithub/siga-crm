@@ -32,7 +32,7 @@ export default function Page({ children }) {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/home">
+                  <BreadcrumbLink href="#">
                     Home
                   </BreadcrumbLink>
                 </BreadcrumbItem>
