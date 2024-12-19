@@ -53,11 +53,13 @@ const Status_Filter = [
   { value: "Confirm", label: "Confirm" },
   { value: "Stall Issued", label: "Stall Issued" },
   { value: "Cancel", label: "Cancel" },
+  { value: "All", label: "All" },
+ 
 ];
 const ParticipationList = () => {
   const { toast } = useToast();
   const [selectedEvent, setSelectedEvent] = useState("30");
-  const [selectedStatus, setSelectedStatus] = useState("Pending");
+  const [selectedStatus, setSelectedStatus] = useState("All");
   const queryClient = useQueryClient();
   const STATUS_CYCLE = ["Pending", "Confirm", "Stall Issued", "Cancel"];
   const usertype = Number(localStorage.getItem("userType")); 
@@ -91,11 +93,28 @@ const ParticipationList = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      if (selectedStatus === "All") {
+        return response.data.participant;
+      }
+      
       return response.data.participant.filter(
         (participant) => participant.profile_status === selectedStatus
       );
     },
   });
+
+  const pendingCount = participants?.filter(
+    (participant) => participant.profile_status === "Pending"
+  )?.length || 0;
+  const confirmCount = participants?.filter(
+    (participant) => participant.profile_status === "Confirm"
+  )?.length || 0;
+  const stallCount = participants?.filter(
+    (participant) => participant.profile_status === "Stall Issued"
+  )?.length || 0;
+  const cancelCount = participants?.filter(
+    (participant) => participant.profile_status === "Cancel"
+  )?.length || 0;
 
   const handleDateFilter = (event) => {
     setSelectedEvent(event);
@@ -377,8 +396,22 @@ const ParticipationList = () => {
             pr-4
           `}
         >
-          <div className="flex text-left text-xl text-gray-800 font-[400]">
-            Participants List
+          <div className="flex justify-between items-center text-left text-xl text-gray-800 font-[400] mb-2">
+          <div>Participants List</div>
+            <div className="flex flex-row items-center gap-2">
+            <div className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded">
+              Pending: {pendingCount}
+            </div>
+            <div className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded">
+              Confirm: {confirmCount}
+            </div>
+            <div className="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded">
+              Stall Issued: {stallCount}
+            </div>
+            <div className="text-sm bg-red-100 text-red-800 px-3 py-1 rounded">
+              Cancel: {cancelCount}
+            </div>
+            </div>
           </div>
           {/* searching and column filter  */}
           <div className="flex items-center py-4">
