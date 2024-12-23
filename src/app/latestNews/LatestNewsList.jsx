@@ -48,6 +48,8 @@ import { useNavigate } from "react-router-dom";
 import NewView from "./NewView";
 const LatestNewsList = () => {
   const queryClient = useQueryClient();
+  const usertype = Number(localStorage.getItem("userType")); 
+  const isRestrictedUserDelete = [1, 2, 4].includes(usertype);
   const {
     data: registrations,
     isLoading,
@@ -138,13 +140,18 @@ const LatestNewsList = () => {
             >
               <FilePenLine className="h-4 w-4" />
             </Button>
+            {!isRestrictedUserDelete && (
             <Button
             variant="ghost"
             size="icon"
-            onClick={(e)=>handleDelete(e,registration)}
+            onClick={(e)=>{
+              e.stopPropagation()
+              handleDelete(e,registration)
+            }}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
+             )}
           </div>
         );
       },

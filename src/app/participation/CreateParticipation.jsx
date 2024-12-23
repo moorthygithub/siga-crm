@@ -43,18 +43,18 @@ const ADVERTISE_OPTIONS = [
 ];
 
 const STALL_TYPES = {
-  "Brand Wagon": ["11x9", "9x6", "8x5", "6x5", "6x4"],
-  "Business Stall": ["4x3", "3x3"],
+  "Brand Wagon": [ "8x5", "6x4"],
+  "Business Stall": ["6x4", "4x3"],
 };
 
 const NO_OF_STALLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 const PRICING = {
   "Brand Wagon": {
-    baseRate: 5500,
+    baseRate: 4900,
     taxRate: 0.18,
   },
   "Business Stall": {
-    baseRate: 4500,
+    baseRate: 4200,
     taxRate: 0.18,
   },
 };
@@ -242,6 +242,12 @@ const CreateParticipation = () => {
     const amount = calculateAmount(stallType, stallSize, stallNo);
     form.setValue("profile_amount", amount);
   }, [stallType, stallSize, stallNo]);
+
+
+
+
+
+
   // Create mutation for API submission
   const createParticipationMutation = useMutation({
     mutationFn: async (data) => {
