@@ -35,6 +35,8 @@ const ParticipationView = ({ id }) => {
     enabled: !!id, // Only run query if registrationId exists
   });
 
+ 
+
   // If no registration is selected
   if (!id) {
     return (

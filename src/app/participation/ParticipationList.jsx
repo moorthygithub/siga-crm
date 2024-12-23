@@ -21,6 +21,10 @@ import {
   Edit,
   Trash2,
   RefreshCcwDot,
+  Download,
+  SquareParking,
+  FileText,
+  SquareArrowDown,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -54,7 +58,6 @@ const Status_Filter = [
   { value: "Stall Issued", label: "Stall Issued" },
   { value: "Cancel", label: "Cancel" },
   { value: "All", label: "All" },
- 
 ];
 const ParticipationList = () => {
   const { toast } = useToast();
@@ -62,8 +65,11 @@ const ParticipationList = () => {
   const [selectedStatus, setSelectedStatus] = useState("All");
   const queryClient = useQueryClient();
   const STATUS_CYCLE = ["Pending", "Confirm", "Stall Issued", "Cancel"];
-  const usertype = Number(localStorage.getItem("userType")); 
+  const usertype = Number(localStorage.getItem("userType"));
   const isRestrictedUser = usertype === 4;
+  const isRestrictedUserDelete = [1, 2, 4].includes(usertype);
+  const [downloadProgress, setDownloadProgress] = useState({});
+
   const { data: dateFilter } = useQuery({
     queryKey: ["dateFilter"],
     queryFn: async () => {
@@ -77,7 +83,20 @@ const ParticipationList = () => {
       return response.data.event;
     },
   });
-
+  // query to get allpartipants data only
+  const { data: allParticipants } = useQuery({
+    queryKey: ["allParticipants", selectedEvent],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-participant-list/${selectedEvent}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data.participant;
+    },
+  });
   const {
     data: participants,
     isLoading,
@@ -96,25 +115,183 @@ const ParticipationList = () => {
       if (selectedStatus === "All") {
         return response.data.participant;
       }
-      
+
       return response.data.participant.filter(
         (participant) => participant.profile_status === selectedStatus
       );
     },
   });
 
-  const pendingCount = participants?.filter(
-    (participant) => participant.profile_status === "Pending"
-  )?.length || 0;
-  const confirmCount = participants?.filter(
-    (participant) => participant.profile_status === "Confirm"
-  )?.length || 0;
-  const stallCount = participants?.filter(
-    (participant) => participant.profile_status === "Stall Issued"
-  )?.length || 0;
-  const cancelCount = participants?.filter(
-    (participant) => participant.profile_status === "Cancel"
-  )?.length || 0;
+  // Add new mutations for invoice creation
+  const createPerformaMutation = useMutation({
+    mutationFn: async (id) => {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${BASE_URL}/api/panel-create-participant-perfoma/${id}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Performa created successfully",
+        variant: "default",
+      });
+      queryClient.invalidateQueries(["participants"]);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create Perform",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Function to handle invoice download
+  const handleDownloadPerforma = async (id) => {
+    try {
+      setDownloadProgress((prev) => ({ ...prev, [id]: 0 }));
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-download-participant-perfoma/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob",
+          onDownloadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const progress = Math.round(
+                (progressEvent.loaded / progressEvent.total) * 100
+              );
+              setDownloadProgress((prev) => ({ ...prev, [id]: progress })); // Update progress
+            }
+          },
+        }
+      );
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `invoice-${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setDownloadProgress((prev) => {
+        const updatedProgress = { ...prev };
+        delete updatedProgress[id]; // Remove progress after completion
+        return updatedProgress;
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to download Performa",
+        variant: "destructive",
+      });
+      setDownloadProgress((prev) => {
+        const updatedProgress = { ...prev };
+        delete updatedProgress[id]; // Remove progress on error
+        return updatedProgress;
+      });
+    }
+  };
+
+  // Update createInvoiceMutation
+  const createInvoiceMutation = useMutation({
+    mutationFn: async (id) => {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${BASE_URL}/api/panel-create-participant-invoice/${id}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Invoice created successfully",
+        variant: "default",
+      });
+      queryClient.invalidateQueries(["participants"]);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create invoice",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Function to handle invoice download
+  const handleDownloadInvoice = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-download-participant-invoice/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob",
+        }
+      );
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `invoice-${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to download invoice",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusCount = (status) => {
+    return (
+      allParticipants?.filter(
+        (participant) => participant.profile_status === status
+      )?.length || 0
+    );
+  };
+
+  const allCount = allParticipants?.length || 0;
+  // const pendingCount =
+  //   participants?.filter(
+  //     (participant) => participant.profile_status === "Pending"
+  //   )?.length || 0;
+  // const confirmCount =
+  //   participants?.filter(
+  //     (participant) => participant.profile_status === "Confirm"
+  //   )?.length || 0;
+  // const stallCount =
+  //   participants?.filter(
+  //     (participant) => participant.profile_status === "Stall Issued"
+  //   )?.length || 0;
+  // const cancelCount =
+  //   participants?.filter(
+  //     (participant) => participant.profile_status === "Cancel"
+  //   )?.length || 0;
+  const pendingCount = getStatusCount("Pending");
+  const confirmCount = getStatusCount("Confirm");
+  const stallCount = getStatusCount("Stall Issued");
+  const cancelCount = getStatusCount("Cancel");
 
   const handleDateFilter = (event) => {
     setSelectedEvent(event);
@@ -259,21 +436,21 @@ const ParticipationList = () => {
               {status}
             </span>
             {!isRestrictedUser && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleStatusToggle(id, status);
-              }}
-              disabled={updateStatusMutation.isPending}
-            >
-              {updateStatusMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCcwDot className="w-4 h-4" />
-              )}
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusToggle(id, status);
+                }}
+                disabled={updateStatusMutation.isPending}
+              >
+                {updateStatusMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCcwDot className="w-4 h-4" />
+                )}
+              </Button>
             )}
           </div>
         );
@@ -282,44 +459,147 @@ const ParticipationList = () => {
     ...(isRestrictedUser
       ? []
       : [
-    {
-      id: "actions",
+          {
+            id: "actions",
 
-      header: "Action",
-      cell: ({ row }) => {
-        const registration = row.original.id;
+            header: "Action",
+            cell: ({ row }) => {
+              const registration = row.original.id;
+              const distributorState = row.original.distributor_agent_state;
+              const status = row.original.profile_status;
+              const hasPerformaInvoice = row.original.profile_p_invoice_no;
+              const hasInvoice = row.original.profile_invoice_no;
 
-        return (
-          <div className="flex flex-row">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(`/view-participants/${registration}`)}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(`/edit-participants/${registration}`)}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleDelete(e, registration)}}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        );
-      },
-    },
-  ]),
+              const isDownloading =
+                downloadProgress[registration] !== undefined;
 
+              return (
+                <div className="flex flex-row">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      localStorage.setItem("selectedStatus", selectedStatus);
+
+                      navigate(`/view-participants/${registration}`);
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      localStorage.setItem("selectedStatus", selectedStatus);
+                      navigate(`/edit-participants/${registration}`);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+
+                  {!isRestrictedUserDelete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(e, registration);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+
+                  {status === "Stall Issued" && (
+                    <>
+                      {!hasPerformaInvoice ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={!distributorState}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            createPerformaMutation.mutate(registration);
+                          }}
+                          title={
+                            !distributorState
+                              ? "Distributor state is required"
+                              : "Create Performa"
+                          }
+                        >
+                          {createPerformaMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <SquareParking className="h-4 w-4" />
+                          )}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadPerforma(registration);
+                          }}
+                          disabled={isDownloading}
+                          title="Download Performa"
+                          className=" hover:text-red-700"
+                        >
+                          {isDownloading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
+                    </>
+                  )}
+                  {status === "Stall Issued" && hasPerformaInvoice && (
+                    <>
+                      {!hasInvoice ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={
+                            !distributorState || createInvoiceMutation.isPending
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            createInvoiceMutation.mutate(registration);
+                          }}
+                          title={
+                            !distributorState
+                              ? "Distributor state is required"
+                              : "Create Invoice"
+                          }
+                        >
+                          {createInvoiceMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <FileText className="h-4 w-4" />
+                          )}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadInvoice(registration);
+                          }}
+                          title="Download Invoice"
+                          className=" hover:text-red-700"
+                        >
+                          <SquareArrowDown className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            },
+          },
+        ]),
   ];
 
   // Create the table instance
@@ -342,7 +622,7 @@ const ParticipationList = () => {
     },
     initialState: {
       pagination: {
-        pageSize: 7,
+        pageSize: 300,
       },
     },
   });
@@ -397,20 +677,38 @@ const ParticipationList = () => {
           `}
         >
           <div className="flex justify-between items-center text-left text-xl text-gray-800 font-[400] mb-2">
-          <div>Participants List</div>
+            <div>Participants List</div>
             <div className="flex flex-row items-center gap-2">
-            <div className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded">
-              Pending: {pendingCount}
-            </div>
-            <div className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded">
-              Confirm: {confirmCount}
-            </div>
-            <div className="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded">
-              Stall Issued: {stallCount}
-            </div>
-            <div className="text-sm bg-red-100 text-red-800 px-3 py-1 rounded">
-              Cancel: {cancelCount}
-            </div>
+              <div
+                onClick={() => handleStatusFilter("All")}
+                className="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded cursor-pointer"
+              >
+                Total: {allCount}
+              </div>
+              <div
+                onClick={() => handleStatusFilter("Pending")}
+                className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded cursor-pointer"
+              >
+                Pending: {pendingCount}
+              </div>
+              <div
+                onClick={() => handleStatusFilter("Confirm")}
+                className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded cursor-pointer"
+              >
+                Confirm: {confirmCount}
+              </div>
+              <div
+                onClick={() => handleStatusFilter("Stall Issued")}
+                className="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded cursor-pointer"
+              >
+                Stall Issued: {stallCount}
+              </div>
+              <div
+                onClick={() => handleStatusFilter("Cancel")}
+                className="text-sm bg-red-100 text-red-800 px-3 py-1 rounded cursor-pointer"
+              >
+                Cancel: {cancelCount}
+              </div>
             </div>
           </div>
           {/* searching and column filter  */}
@@ -497,71 +795,73 @@ const ParticipationList = () => {
             </DropdownMenu>
             {/* create participant button */}
             {!isRestrictedUser && (
-            <div onClick={() => navigate(`/create-participants`)}>
-              <Button variant="default" className="ml-2">
-                Create Participant
-              </Button>
-            </div>
-                )}
+              <div onClick={() => navigate(`/create-participants`)}>
+                <Button variant="default" className="ml-2">
+                  Create Participant
+                </Button>
+              </div>
+            )}
           </div>
           {/* table  */}
           <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      onClick={() => handleRowClick(row.original.id)}
-                      className="cursor-pointer hover:bg-gray-100"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
+            <div className="bg-white    overflow-auto h-[calc(30rem-3rem)]">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead key={header.id}>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                          </TableHead>
+                        );
+                      })}
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableHeader>
+
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}
+                        onClick={() => handleRowClick(row.original.id)}
+                        className="cursor-pointer hover:bg-gray-100"
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        No results.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
           {/* row slection and pagintaion button  */}
           <div className="flex items-center justify-end space-x-2 py-4">
             <div className="flex-1 text-sm text-muted-foreground">
-              {table.getFilteredSelectedRowModel().rows.length} of{" "}
-              {table.getFilteredRowModel().rows.length} row(s) selected.
+              Total {table.getFilteredRowModel().rows.length} participation.
             </div>
             <div className="space-x-2">
               <Button

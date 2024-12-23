@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import BASE_URL from "@/config/BaseUrl";
+import CalculateAmountDialog from "./CalculateAmountDialog";
 
 const CATEGORY_OPTIONS = [
   { id: "category_men", label: "Men" },
@@ -85,14 +86,21 @@ const participationSchema = z.object({
   stall_type: z.string().optional(),
   profile_stall_size: z.string().optional(),
   profile_stall_no: z.string().optional(),
-  profile_amount: z.number().optional(),
+  profile_amount: z
+    .string()
+    .transform((val) => (val === "" ? undefined : Number(val)))
+    .pipe(z.number().optional()),
   profile_payment: z.string().optional(),
   profile_remark: z.string().optional(),
   profile_new_stall_no: z.string().optional(),
   profile_received_amt: z.string().optional(),
+  distributor_agent_city: z.string().min(1, "City  is required"),
+  distributor_agent_state: z.string().min(1, "State  is required"),
 
   // New field for status
-  profile_status: z.enum(["Pending", "Confirm", "Cancel"]).optional(),
+  profile_status: z
+    .enum(["Pending", "Confirm", "Cancel", "Stall Issued"])
+    .optional(),
 });
 
 const EditParticipation = () => {
@@ -117,6 +125,20 @@ const EditParticipation = () => {
     },
   });
 
+  // state data fetch query
+  const { data: stateData } = useQuery({
+    queryKey: ["states"],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${BASE_URL}/api/panel-fetch-state`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data.state;
+    },
+  });
+ 
   const form = useForm({
     resolver: zodResolver(participationSchema),
     defaultValues: {
@@ -149,6 +171,8 @@ const EditParticipation = () => {
       profile_remark: "",
       profile_new_stall_no: "",
       profile_received_amt: "",
+      distributor_agent_city: "",
+      distributor_agent_state: "",
       profile_status: "Pending",
     },
   });
@@ -183,11 +207,13 @@ const EditParticipation = () => {
         stall_type: participantData.stall_type || "",
         profile_stall_size: participantData.profile_stall_size || "",
         profile_stall_no: participantData.profile_stall_no || "",
-        profile_amount: participantData.profile_amount || "",
+        profile_amount: participantData.profile_amount.toString() || "",
         profile_payment: participantData.profile_payment || "",
         profile_remark: participantData.profile_remark || "",
         profile_new_stall_no: participantData.profile_new_stall_no || "",
         profile_received_amt: participantData.profile_received_amt || "",
+        distributor_agent_city: participantData.distributor_agent_city || "",
+        distributor_agent_state: participantData.distributor_agent_state || "",
         profile_status: participantData.profile_status || "Pending",
       });
     }
@@ -304,7 +330,6 @@ const EditParticipation = () => {
   const onSubmit = (data) => {
     updateParticipationMutation.mutate(data);
   };
-
 
   if (isLoading) {
     return (
@@ -499,6 +524,7 @@ const EditParticipation = () => {
               {renderAdvertiseCheckboxes()}
 
               {/* Stall Size Details */}
+              <div>
               <FormField
                 control={form.control}
                 name="profile_stall_size"
@@ -512,6 +538,9 @@ const EditParticipation = () => {
                   </FormItem>
                 )}
               />
+              
+              <CalculateAmountDialog form={form} />
+              </div>
               {/* stall no  */}
               <FormField
                 control={form.control}
@@ -527,7 +556,7 @@ const EditParticipation = () => {
                 )}
               />
 
-              {/* Payment Details */}
+              {/* amount Details */}
               <FormField
                 control={form.control}
                 name="profile_amount"
@@ -535,13 +564,20 @@ const EditParticipation = () => {
                   <FormItem>
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter Amount" {...field} />
+                      <Input
+                        placeholder="Enter Amount"
+                        {...field}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? "" : value);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+            {/* payment detaisl  */}
               <FormField
                 control={form.control}
                 name="profile_payment"
@@ -587,20 +623,42 @@ const EditParticipation = () => {
                   </FormItem>
                 )}
               />
-              {/* Additional Remarks */}
+
+              {/* city  */}
               <FormField
                 control={form.control}
-                name="profile_remark"
+                name="distributor_agent_city"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Additional Remarks</FormLabel>
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Enter any additional remarks"
-                        className="resize-y"
-                        {...field}
-                      />
+                      <Input placeholder="Enter City details" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Add state dropdown */}
+              <FormField
+                control={form.control}
+                name="distributor_agent_state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select State" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {stateData?.map((item) => (
+                          <SelectItem key={item.state} value={item.state}>
+                            {item.state}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -632,6 +690,24 @@ const EditParticipation = () => {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Additional Remarks */}
+              <FormField
+                control={form.control}
+                name="profile_remark"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-3">
+                    <FormLabel>Additional Remarks</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter any additional remarks"
+                        className="resize-y"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

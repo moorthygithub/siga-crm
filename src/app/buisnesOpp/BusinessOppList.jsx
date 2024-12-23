@@ -48,6 +48,9 @@ import { useNavigate } from 'react-router-dom';
 
 const BusinessOppList = () => {
   const queryClient = useQueryClient();
+  const usertype = Number(localStorage.getItem("userType")); 
+
+  const isRestrictedUserDelete = [1, 2, 4].includes(usertype);
   const {
     data: business,
     isLoading,
@@ -194,6 +197,7 @@ const BusinessOppList = () => {
           >
             <Eye className="h-4 w-4" />
           </Button>
+          {!isRestrictedUserDelete && (
           <Button
             variant="ghost"
             size="icon"
@@ -201,6 +205,7 @@ const BusinessOppList = () => {
           >
             <Trash2 className="h-4 w-4" />
           </Button>
+             )}
           </div>
         );
       },
