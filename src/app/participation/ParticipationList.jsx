@@ -25,6 +25,7 @@ import {
   SquareParking,
   FileText,
   SquareArrowDown,
+  SquarePlus,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from "@/config/BaseUrl";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import CreateEnquiry from "./CreateEnquiry";
 
 const Status_Filter = [
   { value: "Pending", label: "Pending" },
@@ -58,6 +60,7 @@ const Status_Filter = [
   { value: "Stall Issued", label: "Stall Issued" },
   { value: "Cancel", label: "Cancel" },
   { value: "All", label: "All" },
+  { value: "Enquiry", label: "Enquiry" },
 ];
 const ParticipationList = () => {
   const { toast } = useToast();
@@ -292,6 +295,7 @@ const ParticipationList = () => {
   const confirmCount = getStatusCount("Confirm");
   const stallCount = getStatusCount("Stall Issued");
   const cancelCount = getStatusCount("Cancel");
+  const enquiryCount = getStatusCount("Enquiry");
 
   const handleDateFilter = (event) => {
     setSelectedEvent(event);
@@ -430,7 +434,10 @@ const ParticipationList = () => {
                   ? "bg-blue-100 text-blue-800"
                   : status == "Cancel"
                   ? "bg-red-100 text-red-800"
+                  : status == "Enquiry"
+                  ? "bg-yellow-100 text-yellow-800"
                   : "bg-gray-100 text-gray-800"
+                  
               }`}
             >
               {status}
@@ -692,6 +699,12 @@ const ParticipationList = () => {
                 Pending: {pendingCount}
               </div>
               <div
+                onClick={() => handleStatusFilter("Enquiry")}
+                className="text-sm bg-yellow-100 text-yellow-800 px-3 py-1 rounded cursor-pointer"
+              >
+                Enquiry: {enquiryCount}
+              </div>
+              <div
                 onClick={() => handleStatusFilter("Confirm")}
                 className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded cursor-pointer"
               >
@@ -797,9 +810,13 @@ const ParticipationList = () => {
             {!isRestrictedUser && (
               <div onClick={() => navigate(`/create-participants`)}>
                 <Button variant="default" className="ml-2">
-                  Create Participant
+                <SquarePlus className="h-4 w-4" /> Participant
                 </Button>
               </div>
+            )}
+           
+            {!isRestrictedUser && (
+              <CreateEnquiry selectedEvent={selectedEvent} />
             )}
           </div>
           {/* table  */}

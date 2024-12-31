@@ -32,6 +32,7 @@ import ParticipantSummary from "./app/report/participantSummary/ParticipantSumma
 
 
 
+
 const queryClient = new QueryClient()
 
 function App() {
@@ -78,6 +79,7 @@ function App() {
         <Route path="/edit-news/:id" element={<EditNews />} />
         {/* report  */}
         <Route path="/participant-summary" element={<ParticipantSummary />} />
+        
       </Routes>
       </QueryClientProvider>
     </>

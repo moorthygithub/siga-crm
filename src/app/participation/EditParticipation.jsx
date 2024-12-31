@@ -49,6 +49,7 @@ const PROFILE_STATUS_OPTIONS = [
   { value: "Confirm", label: "Confirm" },
   { value: "Cancel", label: "Cancel" },
   { value: "Stall Issued", label: "Stall Issued" },
+  { value: "Enquiry", label: "Enquiry" },
 ];
 
 const participationSchema = z.object({
@@ -99,7 +100,7 @@ const participationSchema = z.object({
 
   // New field for status
   profile_status: z
-    .enum(["Pending", "Confirm", "Cancel", "Stall Issued"])
+    .enum(["Pending", "Confirm", "Cancel", "Stall Issued","Enquiry"])
     .optional(),
 });
 
