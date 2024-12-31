@@ -13,12 +13,19 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 
 
 // eslint-disable-next-line react/prop-types
 export default function Page({ children }) {
+  const navigate = useNavigate();
 
+  const handleBackClick = (e) => {
+    e.preventDefault();
+    navigate(-1);
+  };
   
   return (
     (<SidebarProvider>
@@ -32,8 +39,16 @@ export default function Page({ children }) {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
+                  {/* <BreadcrumbLink href="#" onClick={handleBackClick} >
                     Home
+                  </BreadcrumbLink> */}
+                   <BreadcrumbLink 
+                    href="#" 
+                    onClick={handleBackClick}
+                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span>Back</span>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 {/* <BreadcrumbSeparator className="hidden md:block" />
