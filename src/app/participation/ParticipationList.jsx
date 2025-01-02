@@ -26,6 +26,7 @@ import {
   FileText,
   SquareArrowDown,
   SquarePlus,
+  MessageCircle,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,12 @@ import BASE_URL from "@/config/BaseUrl";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import CreateEnquiry from "./CreateEnquiry";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 
 const Status_Filter = [
   { value: "Pending", label: "Pending" },
@@ -72,7 +79,7 @@ const ParticipationList = () => {
   const isRestrictedUser = usertype === 4;
   const isRestrictedUserDelete = [1, 2, 4].includes(usertype);
   const [downloadProgress, setDownloadProgress] = useState({});
-
+  const [globalWhatsappMessage, setGlobalWhatsappMessage] = useState("");
   const { data: dateFilter } = useQuery({
     queryKey: ["dateFilter"],
     queryFn: async () => {
@@ -379,6 +386,21 @@ const ParticipationList = () => {
       status: nextStatus || "Pending",
     });
   };
+  // const handleWhatsAppClick = (e, mobile) => {
+  //   e.stopPropagation();
+  //   const whatsappUrl = `https://wa.me/+91${mobile.replace(/\D/g, '')}`;
+  //   window.open(whatsappUrl, '_blank');
+  // };
+  const handleWhatsAppClick = (e, mobile) => {
+    e.stopPropagation();
+    const encodedMessage = encodeURIComponent(globalWhatsappMessage);
+    const whatsappUrl = `https://wa.me/+91${mobile.replace(
+      /\D/g,
+      ""
+    )}?text=${encodedMessage}`;
+    console.log("WhatsApp URL:", whatsappUrl);
+    window.open(whatsappUrl, "_blank");
+  };
 
   // Define columns for the table
   const columns = [
@@ -437,7 +459,6 @@ const ParticipationList = () => {
                   : status == "Enquiry"
                   ? "bg-yellow-100 text-yellow-800"
                   : "bg-gray-100 text-gray-800"
-                  
               }`}
             >
               {status}
@@ -476,12 +497,22 @@ const ParticipationList = () => {
               const status = row.original.profile_status;
               const hasPerformaInvoice = row.original.profile_p_invoice_no;
               const hasInvoice = row.original.profile_invoice_no;
-
+              const mobile = row.original.rep1_mobile;
               const isDownloading =
                 downloadProgress[registration] !== undefined;
 
               return (
                 <div className="flex flex-row">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => handleWhatsAppClick(e, mobile)}
+                    title="Open WhatsApp"
+                    className="hover:text-green-600"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+
                   <Button
                     variant="ghost"
                     size="icon"
@@ -810,14 +841,35 @@ const ParticipationList = () => {
             {!isRestrictedUser && (
               <div onClick={() => navigate(`/create-participants`)}>
                 <Button variant="default" className="ml-2">
-                <SquarePlus className="h-4 w-4" /> Participant
+                  <SquarePlus className="h-4 w-4" /> Participant
                 </Button>
               </div>
             )}
-           
+
             {!isRestrictedUser && (
               <CreateEnquiry selectedEvent={selectedEvent} />
             )}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="default" className="ml-2">
+                  
+                  <SquarePlus className="h-4 w-4" />Message
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="space-y-4">
+                  <h4 className="font-medium leading-none">
+                    WhatsApp Message
+                  </h4>
+                  <Textarea
+                    placeholder="Type your WhatsApp message..."
+                    className="min-h-[100px]"
+                    value={globalWhatsappMessage}
+                    onChange={(e) => setGlobalWhatsappMessage(e.target.value)}
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
           {/* table  */}
           <div className="rounded-md border">
