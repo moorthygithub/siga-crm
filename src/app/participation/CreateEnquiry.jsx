@@ -16,6 +16,7 @@ import axios from "axios";
 import BASE_URL from "@/config/BaseUrl";
 import { Loader2, SquarePlus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { ParticipationEnquiry } from "@/components/base/ButtonComponents";
 
 const CreateEnquiry = ({ selectedEvent }) => {
   const [open, setOpen] = useState(false);
@@ -106,9 +107,15 @@ const CreateEnquiry = ({ selectedEvent }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default" className="ml-2">
+        {/* <Button variant="default" className="ml-2">
           <SquarePlus className="h-4 w-4" /> Enquiry
-        </Button>
+        </Button> */}
+        <div>
+        <ParticipationEnquiry
+        className="ml-2"
+        />
+        </div>
+
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-md">

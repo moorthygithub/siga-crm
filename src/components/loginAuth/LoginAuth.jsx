@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button"
@@ -15,12 +15,15 @@ import { useToast } from "@/hooks/use-toast"
 import BASE_URL from '@/config/BaseUrl';
 import { Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ContextPanel } from '@/lib/ContextPanel';
 
 export default function LoginAuth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+   const [loadingMessage, setLoadingMessage] = useState("");
+    const { fetchPermissions, fetchPagePermission } = useContext(ContextPanel);
   const navigate = useNavigate();
   const { toast } = useToast();
   // const [logos, setLogos] = useState([]);
@@ -56,6 +59,30 @@ export default function LoginAuth() {
   //     )
   //   );
   // };
+    const loadingMessages = [
+      "Setting things up for you...",
+      "Checking your credentials...",
+      "Preparing your dashboard...",
+      "Almost there...",
+    ];
+  
+    useEffect(() => {
+      let messageIndex = 0;
+      let intervalId;
+  
+      if (isLoading) {
+        setLoadingMessage(loadingMessages[0]);
+        intervalId = setInterval(() => {
+          messageIndex = (messageIndex + 1) % loadingMessages.length;
+          setLoadingMessage(loadingMessages[messageIndex]);
+        }, 800);
+      }
+  
+      return () => {
+        if (intervalId) clearInterval(intervalId);
+      };
+    }, [isLoading]);
+  
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -79,7 +106,8 @@ export default function LoginAuth() {
           localStorage.setItem("username", res.data.UserInfo.user.mobile);
           localStorage.setItem("email", res.data.UserInfo.user.email);
           localStorage.setItem("userType", res.data.UserInfo.user.user_type);
-          
+          await fetchPagePermission();
+          await fetchPermissions();
           // Show success toast
           toast({
             title: "Login Successful",
@@ -89,16 +117,16 @@ export default function LoginAuth() {
           // Direct navigation based on user type
           const userType = res.data.UserInfo.user.user_type;
           switch(userType) {
-            case "1":
+            case 1:
               navigate("/home");
               break;
-            case "2":
+            case 2:
               navigate("/amount");
               break;
-            case "3":
+            case 3:
               navigate("/home");
               break;
-            case "4":
+            case 4:
               navigate("/participation");
               break;
             default:
@@ -200,10 +228,25 @@ export default function LoginAuth() {
                     className="w-full" 
                     disabled={isLoading}
                   >
-                    {isLoading && (
-                      <Loader className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Sign in
+                     {isLoading ? (
+                                          <motion.span
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="flex items-center justify-center"
+                                          >
+                                            <motion.span
+                                              key={loadingMessage}
+                                              initial={{ opacity: 0, y: 10 }}
+                                              animate={{ opacity: 1, y: 0 }}
+                                              exit={{ opacity: 0, y: -10 }}
+                                              className="text-sm"
+                                            >
+                                              {loadingMessage}
+                                            </motion.span>
+                                          </motion.span>
+                                        ) : (
+                                          "Sign in"
+                                        )}
                   </Button>
                 </motion.div>
               </div>

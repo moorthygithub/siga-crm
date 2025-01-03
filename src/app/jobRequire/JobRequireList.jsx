@@ -42,6 +42,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from "@/config/BaseUrl";
 import { useNavigate } from "react-router-dom";
+import { JobRequireEdit, JobRequireView } from "@/components/base/ButtonComponents";
 
 const JobRequireList = () => {
   const {
@@ -153,20 +154,26 @@ const JobRequireList = () => {
 
         return (
           <div className="flex flex-row">
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             onClick={()=>navigate(`/job-require-edit/${registration}`)}
           >
             <Edit className="h-4 w-4" />
-          </Button>
-          <Button
+          </Button> */}
+          <JobRequireEdit
+          onClick={()=>navigate(`/job-require-edit/${registration}`)}
+          />
+          {/* <Button
             variant="ghost"
             size="icon"
             onClick={()=>navigate(`/job-require-view/${registration}`)}
           >
             <Eye className="h-4 w-4" />
-          </Button>
+          </Button> */}
+          <JobRequireView
+          onClick={()=>navigate(`/job-require-view/${registration}`)}
+          />
           </div>
         );
       },

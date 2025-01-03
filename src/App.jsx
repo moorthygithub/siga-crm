@@ -27,6 +27,8 @@ import BusinessEdit from "./app/buisnesOpp/BusinessEdit";
 import AmountEdit from "./app/amount/AmountEdit";
 import TestView from "./app/participation/TestView";
 import ParticipantSummary from "./app/report/participantSummary/ParticipantSummary";
+import TabIndex from "./app/userManagement/TabIndex";
+import CreateButtonRole from "./app/userManagement/CreateButtonRole";
 
 
 
@@ -79,6 +81,10 @@ function App() {
         <Route path="/edit-news/:id" element={<EditNews />} />
         {/* report  */}
         <Route path="/participant-summary" element={<ParticipantSummary />} />
+
+        {/* user management  */}
+        <Route path="/user-management" element={<TabIndex />} />
+        <Route path="/create-buttonRole" element={<CreateButtonRole />} />
         
       </Routes>
       </QueryClientProvider>
