@@ -339,6 +339,7 @@ const ParticipationList = () => {
     },
     onSuccess: (data, variables) => {
       // Invalidate and refetch queries to update the UI
+      queryClient.invalidateQueries({ queryKey: ["allParticipants"] });
       queryClient.invalidateQueries({ queryKey: ["participants"] });
       toast({
         title: "Status Updated",
