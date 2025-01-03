@@ -42,6 +42,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from '@/config/BaseUrl';
 import { useNavigate } from 'react-router-dom';
+import { JobOfferedEdit, JobOfferedView } from '@/components/base/ButtonComponents';
 
 const JobOfferedList = () => {
   const {
@@ -153,24 +154,28 @@ const JobOfferedList = () => {
 
         return (
           <div className='flex flex-row items-center'>
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             onClick={()=>navigate(`/job-offered-edit/${registration}`)}
           >
             <Edit className="h-4 w-4" />
-          </Button>
-          <Button
+          </Button> */}
+          <JobOfferedEdit
+           onClick={()=>navigate(`/job-offered-edit/${registration}`)}
+          />
+          {/* <Button
             variant="ghost"
             size="icon"
-            // onClick={() => {
-            //   // Implement view details functionality
-            //   console.log("View registration details:", registration);
-            // }}
+        
             onClick={()=>navigate(`/job-offered-view/${registration}`)}
           >
             <Eye className="h-4 w-4" />
-          </Button>
+          </Button> */}
+
+          <JobOfferedView
+           onClick={()=>navigate(`/job-offered-view/${registration}`)}
+          />
           </div>
         );
       },

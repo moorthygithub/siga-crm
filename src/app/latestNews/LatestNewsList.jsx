@@ -46,6 +46,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import NewView from "./NewView";
+import { LatestNewsEdit } from "@/components/base/ButtonComponents";
 const LatestNewsList = () => {
   const queryClient = useQueryClient();
   const usertype = Number(localStorage.getItem("userType")); 
@@ -133,13 +134,18 @@ const LatestNewsList = () => {
         return (
           <div className="flex flex-row">
             
-            <Button
+            {/* <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate(`/edit-news/${registration}`)}
             >
               <FilePenLine className="h-4 w-4" />
-            </Button>
+            </Button> */}
+            <LatestNewsEdit
+             onClick={() => navigate(`/edit-news/${registration}`)}
+            />
+
+
             {!isRestrictedUserDelete && (
             <Button
             variant="ghost"

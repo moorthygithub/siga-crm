@@ -25,6 +25,13 @@ export function NavProjects({
   const buttonVariants = {
     hover: { scale: 1.05 },
   };
+  if(!projects || projects.length === 0) {
+    return null 
+  }
+  const hasActiveItems = projects.length > 0;
+  if(!hasActiveItems){
+    return null
+  }
   return (
     (<SidebarGroup >
       <SidebarGroupLabel>Event</SidebarGroupLabel>

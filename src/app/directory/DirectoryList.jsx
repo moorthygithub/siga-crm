@@ -43,6 +43,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from "@/config/BaseUrl";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { DirectryView } from "@/components/base/ButtonComponents";
 
 const DirectoryList = () => {
   const queryClient = useQueryClient();
@@ -216,16 +217,24 @@ const DirectoryList = () => {
         const registration = row.original.id;
 
         return (
-          <Button
+          <div className="flex flex-row">
+          {/* <Button
             variant="ghost"
             size="icon"
             onClick={() => {
-              // Implement view details functionality
+            
               navigate(`/directory-view/${registration}`);
             }}
           >
             <Eye className="h-4 w-4" />
-          </Button>
+          </Button> */}
+          <DirectryView
+          onClick={() => {
+            
+            navigate(`/directory-view/${registration}`);
+          }}
+          />
+          </div>
         );
       },
     },

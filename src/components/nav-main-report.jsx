@@ -33,6 +33,14 @@ export function NavMainReport({
   items
 }) {
 
+  if(!items || items.length ===0 ){
+    return null 
+  }
+  const hasActiveItems = items.length > 0
+  if(!hasActiveItems){
+    return null
+  }
+
   return (
     (<SidebarGroup>
       <SidebarGroupLabel>Report</SidebarGroupLabel>

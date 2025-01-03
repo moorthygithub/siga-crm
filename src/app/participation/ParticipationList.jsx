@@ -60,6 +60,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { ParticipationCreate, ParticipationCrMessage, ParticipationEdit, ParticipationMessage, ParticipationViews } from "@/components/base/ButtonComponents";
 
 const Status_Filter = [
   { value: "Pending", label: "Pending" },
@@ -504,7 +505,7 @@ const ParticipationList = () => {
 
               return (
                 <div className="flex flex-row">
-                  <Button
+                  {/* <Button
                     variant="ghost"
                     size="icon"
                     onClick={(e) => handleWhatsAppClick(e, mobile)}
@@ -512,9 +513,16 @@ const ParticipationList = () => {
                     className="hover:text-green-600"
                   >
                     <MessageCircle className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
 
-                  <Button
+                  <ParticipationMessage
+                   onClick={(e) => handleWhatsAppClick(e, mobile)}
+                 
+                   className="hover:text-green-600"
+                  />
+
+
+                  {/* <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => {
@@ -524,8 +532,16 @@ const ParticipationList = () => {
                     }}
                   >
                     <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
+                  </Button> */}
+
+                  <ParticipationViews
+                  onClick={() => {
+                    localStorage.setItem("selectedStatus", selectedStatus);
+
+                    navigate(`/view-participants/${registration}`);
+                  }}
+                  />
+                  {/* <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => {
@@ -534,8 +550,13 @@ const ParticipationList = () => {
                     }}
                   >
                     <Edit className="h-4 w-4" />
-                  </Button>
-
+                  </Button> */}
+                    <ParticipationEdit
+                     onClick={() => {
+                      localStorage.setItem("selectedStatus", selectedStatus);
+                      navigate(`/edit-participants/${registration}`);
+                    }}
+                    />
                   {!isRestrictedUserDelete && (
                     <Button
                       variant="ghost"
@@ -840,23 +861,37 @@ const ParticipationList = () => {
             </DropdownMenu>
             {/* create participant button */}
             {!isRestrictedUser && (
-              <div onClick={() => navigate(`/create-participants`)}>
+              <>
+              {/* <div onClick={() => navigate(`/create-participants`)}>
                 <Button variant="default" className="ml-2">
                   <SquarePlus className="h-4 w-4" /> Participant
                 </Button>
-              </div>
+              </div> */}
+              <ParticipationCreate
+              className="ml-2"
+              onClick={() => navigate(`/create-participants`)}
+              />
+</>
             )}
 
             {!isRestrictedUser && (
               <CreateEnquiry selectedEvent={selectedEvent} />
             )}
+               {!isRestrictedUser && (
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="default" className="ml-2">
+                {/* <Button variant="default" className="ml-2">
                   
-                  <SquarePlus className="h-4 w-4" />Message
-                </Button>
+                  <SquarePlus className="h-4 w-4" />Messaged
+                </Button> */}
+                <div>
+                <ParticipationCrMessage
+                className="ml-2"
+                
+                />
+                </div>
               </PopoverTrigger>
+
               <PopoverContent className="w-80">
                 <div className="space-y-4">
                   <h4 className="font-medium leading-none">
@@ -871,6 +906,7 @@ const ParticipationList = () => {
                 </div>
               </PopoverContent>
             </Popover>
+               )}
           </div>
           {/* table  */}
           <div className="rounded-md border">
