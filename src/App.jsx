@@ -48,7 +48,7 @@ function App() {
         {/* Dashboard  */}
         <Route path="/home" element={<Home />} />
         {/* Registration  */}
-        <Route path="/registration" element={<RegistrationList />} />
+        <Route path="/registrations" element={<RegistrationList />} />
         {/* id card  */}
         <Route path="/participant" element={<ParticipantList />} />
         {/* participtations */}
