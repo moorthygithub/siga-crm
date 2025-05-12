@@ -164,7 +164,7 @@ const ParticipationList = () => {
   });
 
   // Function to handle invoice download
-  const handleDownloadPerforma = async (id) => {
+  const handleDownloadPerforma = async (id,brandName) => {
     try {
       setDownloadProgress((prev) => ({ ...prev, [id]: 0 }));
       const token = localStorage.getItem("token");
@@ -185,12 +185,12 @@ const ParticipationList = () => {
           },
         }
       );
-
+      const firstWord = brandName ? brandName.split(" ")[0] : "";
       // Create blob link to download
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `invoice-${id}.pdf`);
+      link.setAttribute("download", `PI-${firstWord}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -599,7 +599,7 @@ const ParticipationList = () => {
                           size="icon"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDownloadPerforma(registration);
+                            handleDownloadPerforma(registration,row.original.brand_name);
                           }}
                           disabled={isDownloading}
                           title="Download Performa"
