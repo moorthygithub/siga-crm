@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 
 
 const STALL_TYPES = {
-    "Brand Wagon": [ "8x5", "6x4"],
+    "Brand Wagon": [ "8x6", "8x5", "6x4", "6x5", "4x3"],
     "Business Stall": ["6x4", "4x3"],
   };
 
@@ -27,11 +27,11 @@ const NO_OF_STALLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
 const PRICING = {
     "Brand Wagon": {
-      baseRate: 4900,
+      baseRate: 6900,
       taxRate: 0.18,
     },
     "Business Stall": {
-      baseRate: 4200,
+      baseRate: 5900,
       taxRate: 0.18,
     },
   };
@@ -73,7 +73,7 @@ const CalculateAmountDialog = ({ form }) => {
   const handlePopulateData = () => {
     form.setValue("profile_stall_size", selectedValues.stallSize);
     form.setValue("profile_stall_no", selectedValues.stallNo);
-    form.setValue("profile_amount", calculatedAmount);
+    form.setValue("profile_amount", Number(calculatedAmount));
     setOpen(false);
   };
 
