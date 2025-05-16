@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Page from "../dashboard/page";
 import ParticipationView from "./ParticipationView";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -60,7 +60,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { ParticipationCreate, ParticipationCrMessage, ParticipationEdit, ParticipationMessage, ParticipationViews } from "@/components/base/ButtonComponents";
+import {
+  ParticipationCreate,
+  ParticipationCrMessage,
+  ParticipationEdit,
+  ParticipationMessage,
+  ParticipationViews,
+} from "@/components/base/ButtonComponents";
 
 const Status_Filter = [
   { value: "Pending", label: "Pending" },
@@ -73,7 +79,9 @@ const Status_Filter = [
 const ParticipationList = () => {
   const { toast } = useToast();
   const [selectedEvent, setSelectedEvent] = useState("30");
-  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState(
+    localStorage.getItem("selectedStatus") || "All"
+  );
   const queryClient = useQueryClient();
   const STATUS_CYCLE = ["Pending", "Confirm", "Stall Issued", "Cancel"];
   const usertype = Number(localStorage.getItem("userType"));
@@ -81,6 +89,8 @@ const ParticipationList = () => {
   const isRestrictedUserDelete = [1, 2, 4].includes(usertype);
   const [downloadProgress, setDownloadProgress] = useState({});
   const [globalWhatsappMessage, setGlobalWhatsappMessage] = useState("");
+  const [highlightedRowId, setHighlightedRowId] = useState(null);
+
   const { data: dateFilter } = useQuery({
     queryKey: ["dateFilter"],
     queryFn: async () => {
@@ -164,7 +174,7 @@ const ParticipationList = () => {
   });
 
   // Function to handle invoice download
-  const handleDownloadPerforma = async (id,brandName) => {
+  const handleDownloadPerforma = async (id, brandName) => {
     try {
       setDownloadProgress((prev) => ({ ...prev, [id]: 0 }));
       const token = localStorage.getItem("token");
@@ -207,12 +217,33 @@ const ParticipationList = () => {
       });
       setDownloadProgress((prev) => {
         const updatedProgress = { ...prev };
-        delete updatedProgress[id]; // Remove progress on error
+        delete updatedProgress[id];
         return updatedProgress;
       });
     }
   };
+  useEffect(() => {
+    const lastEditedId = localStorage.getItem("lastEditedParticipantId");
 
+    if (lastEditedId) {
+      setHighlightedRowId(parseInt(lastEditedId));
+
+      localStorage.removeItem("lastEditedParticipantId");
+
+      setTimeout(() => {
+        const element = document.getElementById(
+          `participant-row-${lastEditedId}`
+        );
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 500);
+
+      setTimeout(() => {
+        setHighlightedRowId(null);
+      }, 3000);
+    }
+  }, []);
   // Update createInvoiceMutation
   const createInvoiceMutation = useMutation({
     mutationFn: async (id) => {
@@ -311,6 +342,7 @@ const ParticipationList = () => {
 
   const handleStatusFilter = (status) => {
     setSelectedStatus(status);
+    localStorage.setItem("selectedStatus",status)
   };
 
   // State for table management
@@ -516,11 +548,9 @@ const ParticipationList = () => {
                   </Button> */}
 
                   <ParticipationMessage
-                   onClick={(e) => handleWhatsAppClick(e, mobile)}
-                 
-                   className="hover:text-green-600"
+                    onClick={(e) => handleWhatsAppClick(e, mobile)}
+                    className="hover:text-green-600"
                   />
-
 
                   {/* <Button
                     variant="ghost"
@@ -535,11 +565,14 @@ const ParticipationList = () => {
                   </Button> */}
 
                   <ParticipationViews
-                  onClick={() => {
-                    localStorage.setItem("selectedStatus", selectedStatus);
-
-                    navigate(`/view-participants/${registration}`);
-                  }}
+                    onClick={() => {
+                      localStorage.setItem("selectedStatus", selectedStatus);
+                      localStorage.setItem(
+                        "lastEditedParticipantId",
+                        registration
+                      );
+                      navigate(`/view-participants/${registration}`);
+                    }}
                   />
                   {/* <Button
                     variant="ghost"
@@ -551,12 +584,16 @@ const ParticipationList = () => {
                   >
                     <Edit className="h-4 w-4" />
                   </Button> */}
-                    <ParticipationEdit
-                     onClick={() => {
+                  <ParticipationEdit
+                    onClick={() => {
                       localStorage.setItem("selectedStatus", selectedStatus);
+                      localStorage.setItem(
+                        "lastEditedParticipantId",
+                        registration
+                      );
                       navigate(`/edit-participants/${registration}`);
                     }}
-                    />
+                  />
                   {!isRestrictedUserDelete && (
                     <Button
                       variant="ghost"
@@ -599,7 +636,10 @@ const ParticipationList = () => {
                           size="icon"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDownloadPerforma(registration,row.original.brand_name);
+                            handleDownloadPerforma(
+                              registration,
+                              row.original.brand_name
+                            );
                           }}
                           disabled={isDownloading}
                           title="Download Performa"
@@ -862,51 +902,48 @@ const ParticipationList = () => {
             {/* create participant button */}
             {!isRestrictedUser && (
               <>
-              {/* <div onClick={() => navigate(`/create-participants`)}>
+                {/* <div onClick={() => navigate(`/create-participants`)}>
                 <Button variant="default" className="ml-2">
                   <SquarePlus className="h-4 w-4" /> Participant
                 </Button>
               </div> */}
-              <ParticipationCreate
-              className="ml-2"
-              onClick={() => navigate(`/create-participants`)}
-              />
-</>
+                <ParticipationCreate
+                  className="ml-2"
+                  onClick={() => navigate(`/create-participants`)}
+                />
+              </>
             )}
 
             {!isRestrictedUser && (
               <CreateEnquiry selectedEvent={selectedEvent} />
             )}
-               {!isRestrictedUser && (
-            <Popover>
-              <PopoverTrigger asChild>
-                {/* <Button variant="default" className="ml-2">
+            {!isRestrictedUser && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  {/* <Button variant="default" className="ml-2">
                   
                   <SquarePlus className="h-4 w-4" />Messaged
                 </Button> */}
-                <div>
-                <ParticipationCrMessage
-                className="ml-2"
-                
-                />
-                </div>
-              </PopoverTrigger>
+                  <div>
+                    <ParticipationCrMessage className="ml-2" />
+                  </div>
+                </PopoverTrigger>
 
-              <PopoverContent className="w-80">
-                <div className="space-y-4">
-                  <h4 className="font-medium leading-none">
-                    WhatsApp Message
-                  </h4>
-                  <Textarea
-                    placeholder="Type your WhatsApp message..."
-                    className="min-h-[100px]"
-                    value={globalWhatsappMessage}
-                    onChange={(e) => setGlobalWhatsappMessage(e.target.value)}
-                  />
-                </div>
-              </PopoverContent>
-            </Popover>
-               )}
+                <PopoverContent className="w-80">
+                  <div className="space-y-4">
+                    <h4 className="font-medium leading-none">
+                      WhatsApp Message
+                    </h4>
+                    <Textarea
+                      placeholder="Type your WhatsApp message..."
+                      className="min-h-[100px]"
+                      value={globalWhatsappMessage}
+                      onChange={(e) => setGlobalWhatsappMessage(e.target.value)}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
           {/* table  */}
           <div className="rounded-md border">
@@ -938,7 +975,12 @@ const ParticipationList = () => {
                         key={row.id}
                         data-state={row.getIsSelected() && "selected"}
                         onClick={() => handleRowClick(row.original.id)}
-                        className="cursor-pointer hover:bg-gray-100"
+                        id={`participant-row-${row.original.id}`}
+                        className={
+                          highlightedRowId === row.original.id
+                            ? "bg-yellow-100 transition-colors duration-1000"
+                            : "cursor-pointer hover:bg-gray-100"
+                        }
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>

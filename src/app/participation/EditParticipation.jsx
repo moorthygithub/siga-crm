@@ -87,14 +87,11 @@ const participationSchema = z.object({
   stall_type: z.string().optional(),
   profile_stall_size: z.string().optional(),
   profile_stall_no: z.string().optional(),
-  profile_amount: z
-    .string()
-    .transform((val) => (val === "" ? undefined : Number(val)))
-    .pipe(z.number().optional()),
+  profile_amount:z.number().optional(),
   profile_payment: z.string().optional(),
   profile_remark: z.string().optional(),
   profile_new_stall_no: z.string().optional(),
-  profile_received_amt: z.string().optional(),
+  profile_received_amt: z.number().optional(),
   distributor_agent_city: z.string().min(1, "City  is required"),
   distributor_agent_state: z.string().min(1, "State  is required"),
 
@@ -167,11 +164,11 @@ const EditParticipation = () => {
       stall_type: "",
       profile_stall_size: "",
       profile_stall_no: "",
-      profile_amount: "",
+      profile_amount: 0,
       profile_payment: "",
       profile_remark: "",
       profile_new_stall_no: "",
-      profile_received_amt: "",
+      profile_received_amt: 0,
       distributor_agent_city: "",
       distributor_agent_state: "",
       profile_status: "Pending",
@@ -208,11 +205,11 @@ const EditParticipation = () => {
         stall_type: participantData.stall_type || "",
         profile_stall_size: participantData.profile_stall_size || "",
         profile_stall_no: participantData.profile_stall_no || "",
-        profile_amount: participantData.profile_amount.toString() || "",
+        profile_amount: participantData.profile_amount || 0,
         profile_payment: participantData.profile_payment || "",
         profile_remark: participantData.profile_remark || "",
         profile_new_stall_no: participantData.profile_new_stall_no || "",
-        profile_received_amt: participantData.profile_received_amt || "",
+        profile_received_amt: participantData.profile_received_amt || 0,
         distributor_agent_city: participantData.distributor_agent_city || "",
         distributor_agent_state: participantData.distributor_agent_state || "",
         profile_status: participantData.profile_status || "Pending",
@@ -567,16 +564,20 @@ const EditParticipation = () => {
                     <FormControl>
                       <Input
                         placeholder="Enter Amount"
+                         type="number"
                         {...field}
                         onChange={(e) => {
                           const value = e.target.value;
-                          field.onChange(value === "" ? "" : value);
+                          field.onChange(value === "" ? 0 : Number(value));
                         }}
+                        value={field.value || ""} 
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
+                  
                 )}
+             
               />
             {/* payment detaisl  */}
               <FormField
@@ -616,6 +617,7 @@ const EditParticipation = () => {
                     <FormLabel>Received Amount</FormLabel>
                     <FormControl>
                       <Input
+                      type="number"
                         placeholder="Enter Received Amount details"
                         {...field}
                       />
