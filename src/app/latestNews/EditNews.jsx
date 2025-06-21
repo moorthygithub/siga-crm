@@ -15,21 +15,22 @@ import {
 } from "@/components/ui/select";
 import { Edit, Save, CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format ,parseISO} from 'date-fns';
+import moment from 'moment'; 
 import { cn } from "@/lib/utils";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import BASE_URL from '@/config/BaseUrl';
+
 const EditNews = () => {
-     // Fetch news by ID
-     const {id} = useParams()
-     const { toast } = useToast();
-     const navigate = useNavigate()
-     const [calendarMonth, setCalendarMonth] = React.useState(new Date());
+  const { id } = useParams();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [calendarMonth, setCalendarMonth] = React.useState(new Date());
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['newsDetails', 1],
     queryFn: async () => {
-        const token = localStorage.getItem('token')
+      const token = localStorage.getItem('token');
       const response = await axios.get(`${BASE_URL}/api/panel-fetch-news-by-id/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -38,50 +39,42 @@ const EditNews = () => {
   });
 
   // Update news mutation
-   // Update news mutation
-   const updateNewsMutation = useMutation({
+  const updateNewsMutation = useMutation({
     mutationFn: async (updatedNews) => {
       const token = localStorage.getItem('token');
       const formData = new FormData();
       const correctDate = new Date(updatedNews.news_date);
       correctDate.setHours(12, 0, 0, 0);
-      // Append all required fields to FormData
+      
       formData.append('news_heading', updatedNews.news_heading);
       formData.append('news_sub_title', updatedNews.news_sub_title);
       formData.append('news_department', updatedNews.news_department);
       formData.append('news_details', updatedNews.news_details);
       formData.append('news_link', updatedNews.news_link);
-      formData.append('news_date', format(correctDate, 'yyyy-MM-dd'))
+      formData.append('news_date', moment(correctDate).format('YYYY-MM-DD')); // Use moment for formatting
       formData.append('news_status', updatedNews.news_status);
       formData.append('news_id', updatedNews.id);
 
-    
       const response = await axios.post(
         `${BASE_URL}/api/panel-update-news`, 
         formData,
         {
           headers: { 
             'Authorization': `Bearer ${token}`,
-         
           }
         }
       );
       return response.data;
     },
     onSuccess: () => {
-      console.log('News updated successfully');
-      // Optionally add toast or navigation logic here
       toast({
-        title: "Updated Succesfully",
+        title: "Updated Successfully",
         description: "Your news article has been successfully updated.",
         variant: "success"
       });
-     
-      navigate('/latest-news')
+      navigate('/latest-news');
     },
     onError: (error) => {
-      console.error('Failed to update news', error);
-      // Optionally add error handling toast or messaging
       toast({
         title: "Error",
         description: error.response?.data?.message || "Failed to create news",
@@ -90,7 +83,6 @@ const EditNews = () => {
     }
   });
 
-  // State to manage form data
   const [formData, setFormData] = React.useState({
     news_heading: '',
     news_sub_title: '',
@@ -100,12 +92,10 @@ const EditNews = () => {
     news_department: '',
     news_status: '1'
   });
- 
 
-  // Update form data when fetched data is available
   React.useEffect(() => {
     if (data) {
-      const parsedDate = data.news_date ? parseISO(data.news_date) : new Date();
+      const parsedDate = data.news_date ? moment(data.news_date).toDate() : new Date(); // Use moment for parsing
       setFormData({
         ...data,
         news_date: parsedDate
@@ -114,7 +104,6 @@ const EditNews = () => {
     }
   }, [data]);
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -123,16 +112,14 @@ const EditNews = () => {
     }));
   };
 
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     updateNewsMutation.mutate(formData);
   };
 
-  
   return (
- <Page>
-       <div className="container mx-auto p-6">
+    <Page>
+      <div className="container mx-auto p-6">
         <h1 className="text-2xl font-bold mb-6 flex items-center">
           <Edit className="mr-2" /> Edit News
         </h1>
@@ -164,7 +151,7 @@ const EditNews = () => {
               <label className="block mb-2">News Date</label>
               <Popover>
                 <PopoverTrigger asChild>
-                <Button
+                  <Button
                     variant={"outline"}
                     className={cn(
                       "w-full justify-start text-left font-normal",
@@ -173,7 +160,7 @@ const EditNews = () => {
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {formData.news_date
-                      ? format(formData.news_date, "PPP")
+                      ? moment(formData.news_date).format("MMM Do, YYYY") // Use moment for display formatting
                       : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
@@ -183,7 +170,6 @@ const EditNews = () => {
                     selected={formData.news_date}
                     onSelect={(date) => {
                       setFormData((prev) => ({ ...prev, news_date: date }));
-                      // Update calendar month when a new date is selected
                       setCalendarMonth(date);
                     }}
                     month={calendarMonth}
@@ -233,7 +219,6 @@ const EditNews = () => {
                 onChange={handleChange}
                 placeholder="Enter Department"
               />
-              
             </div>
           </div>
           <div>
@@ -246,9 +231,6 @@ const EditNews = () => {
               rows={4}
             />
           </div>
-      
-
-  
 
           <div className="mt-6">
             <Button type="submit" className="flex items-center">
@@ -257,8 +239,8 @@ const EditNews = () => {
           </div>
         </form>
       </div>
- </Page>
-  )
-}
+    </Page>
+  );
+};
 
-export default EditNews
+export default EditNews;
