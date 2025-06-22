@@ -304,6 +304,35 @@ const ParticipationList = () => {
       });
     }
   };
+  const handleDownloadConfirmationInvoice = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-download-participant-confirmation/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob",
+        }
+      );
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `confirmation-invoice-${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to download confirmation invoice",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getStatusCount = (status) => {
     return (
@@ -342,7 +371,7 @@ const ParticipationList = () => {
 
   const handleStatusFilter = (status) => {
     setSelectedStatus(status);
-    localStorage.setItem("selectedStatus",status)
+    localStorage.setItem("selectedStatus", status);
   };
 
   // State for table management
@@ -693,6 +722,24 @@ const ParticipationList = () => {
                           <SquareArrowDown className="h-4 w-4" />
                         </Button>
                       )}
+                    </>
+                  )}
+                  {status === "Stall Issued" && (
+                    <>
+                   
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Confirmation Invoice"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadConfirmationInvoice(registration);
+                          }}
+                        className=" text-green-800 hover:text-red-700"
+                      >
+                   
+                        <SquareArrowDown className="h-4 w-4" />
+                      </Button>
                     </>
                   )}
                 </div>

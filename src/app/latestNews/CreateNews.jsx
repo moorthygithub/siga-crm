@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { PlusCircle, Save, CalendarIcon } from 'lucide-react';
 import Page from '../dashboard/page';
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import moment from 'moment'; 
 import { cn } from "@/lib/utils";
 import { useNavigate } from 'react-router-dom';
 import BASE_URL from '@/config/BaseUrl';
@@ -20,7 +20,7 @@ const CreateNews = () => {
   const { register, handleSubmit, control, reset, setValue, formState: { errors } } = useForm();
   const [newsDate, setNewsDate] = useState(new Date());
   const { toast } = useToast();
-  const navigate =useNavigate()
+  const navigate = useNavigate();
 
   // Mutation for creating news
   const createNewsMutation = useMutation({
@@ -32,8 +32,6 @@ const CreateNews = () => {
         formData.append(key, data[key]);
       });
       
-    
-
       const response = await axios.post(`${BASE_URL}/api/panel-create-news`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -50,7 +48,7 @@ const CreateNews = () => {
       });
       reset();
       setNewsDate(new Date());
-      navigate('/latest-news')
+      navigate('/latest-news');
     },
     onError: (error) => {
       toast({
@@ -66,7 +64,7 @@ const CreateNews = () => {
   };
 
   return (
-   <Page>
+    <Page>
       <div className="container mx-auto px-4 py-0 md:py-8">
         <h1 className="text-2xl font-bold mb-6 flex items-center">
           <PlusCircle className="mr-2" /> Create News Article
@@ -96,29 +94,28 @@ const CreateNews = () => {
             </div>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
-          {/* Department */}
+            {/* Department */}
+            <div className="space-y-2">
+              <Label>Department</Label>
+              <Input 
+                {...register('news_department', { required: 'Department is required' })}
+                placeholder="Enter department"
+              />
+              {errors.news_department && (
+                <p className="text-red-500 text-sm">{errors.news_department.message}</p>
+              )}
+            </div>
+            {/* News Link (Optional) */}
+            <div className="space-y-2">
+              <Label>News Link (Optional)</Label>
+              <Input 
+                {...register('news_link')}
+                placeholder="Enter related link (optional)"
+              />
+            </div>
+          </div>
+          {/* News Date */}
           <div className="space-y-2">
-            <Label>Department</Label>
-            <Input 
-              {...register('news_department', { required: 'Department is required' })}
-              placeholder="Enter department"
-            />
-            {errors.news_department && (
-              <p className="text-red-500 text-sm">{errors.news_department.message}</p>
-            )}
-          </div>
-          {/* News Link (Optional) */}
-          <div className="space-y-2">
-            <Label>News Link (Optional)</Label>
-            <Input 
-              {...register('news_link')}
-              placeholder="Enter related link (optional)"
-              
-            />
-          </div>
-          </div>
-              {/* News Date */}
-              <div className="space-y-2">
             <Label>News Date</Label>
             <Popover>
               <PopoverTrigger asChild>
@@ -130,7 +127,7 @@ const CreateNews = () => {
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {newsDate ? format(newsDate, "PPP") : <span>Pick a date</span>}
+                  {newsDate ? moment(newsDate).format("MMMM Do, YYYY") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
@@ -139,8 +136,8 @@ const CreateNews = () => {
                   selected={newsDate}
                   onSelect={(date) => {
                     setNewsDate(date);
-                    // Optionally update the form value
-                    setValue('news_date', format(date, "yyyy-MM-dd"));
+                    // Update the form value using moment
+                    setValue('news_date', moment(date).format("YYYY-MM-DD"));
                   }}
                   initialFocus
                 />
@@ -160,31 +157,27 @@ const CreateNews = () => {
             )}
           </div>
 
-     
-
-      
-
           {/* Submit Button */}
           <div className="flex flex-row mt-6 gap-6">
-          <Button 
-            type="submit" 
-            disabled={createNewsMutation.isPending}
-            className="w-full"
-          >
-            <Save className="mr-2" /> 
-            {createNewsMutation.isPending ? 'Saving...' : 'Create News Article'}
-          </Button>
-          <Button
-             onClick={()=>navigate('/latest-news')}
-              className="w-full "
+            <Button 
+              type="submit" 
+              disabled={createNewsMutation.isPending}
+              className="w-full"
             >
-             Cancel
+              <Save className="mr-2" /> 
+              {createNewsMutation.isPending ? 'Saving...' : 'Create News Article'}
             </Button>
-            </div>
+            <Button
+              onClick={() => navigate('/latest-news')}
+              className="w-full"
+            >
+              Cancel
+            </Button>
+          </div>
         </form>
       </div>
-   </Page>
-  )
-}
+    </Page>
+  );
+};
 
 export default CreateNews;
