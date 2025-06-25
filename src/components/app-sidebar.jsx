@@ -125,6 +125,11 @@ export function AppSidebar({ ...props }) {
         url: "/participant",
         icon: Map,
       },
+      {
+        name: "MSME",
+        url: "/msme",
+        icon: Map,
+      },
     ],
   };
   const filterItemsByPermission = (items) => {

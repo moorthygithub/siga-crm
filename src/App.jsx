@@ -29,6 +29,9 @@ import TestView from "./app/participation/TestView";
 import ParticipantSummary from "./app/report/participantSummary/ParticipantSummary";
 import TabIndex from "./app/userManagement/TabIndex";
 import CreateButtonRole from "./app/userManagement/CreateButtonRole";
+import MsmeList from "./app/msme/MsmeList";
+import MsmeEdit from "./app/msme/MsmeEdit";
+import MsmeView from "./app/msme/MsmeView";
 
 
 
@@ -51,6 +54,10 @@ function App() {
         <Route path="/registrations" element={<RegistrationList />} />
         {/* id card  */}
         <Route path="/participant" element={<ParticipantList />} />
+        {/* msme */}
+        <Route path="/msme" element={<MsmeList />} />
+        <Route path="/msme-edit/:id" element={<MsmeEdit />} />
+        <Route path="/msme-view/:id" element={<MsmeView />} />
         {/* participtations */}
         <Route path="/participation" element={<ParticipationList />} />
         <Route path="/create-participants" element={<CreateParticipation />} />
