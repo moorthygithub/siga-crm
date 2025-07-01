@@ -28,7 +28,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import BASE_URL from "@/config/BaseUrl";
-import CalculateAmountDialog from "./CalculateAmountDialog";
+import useNumericInput from "@/hooks/useNumericInput";
+import EditCalculateAmountDialog from "./EditCalculateAmountDialog";
 
 const CATEGORY_OPTIONS = [
   { id: "category_men", label: "Men" },
@@ -87,11 +88,11 @@ const participationSchema = z.object({
   stall_type: z.string().optional(),
   profile_stall_size: z.string().optional(),
   profile_stall_no: z.string().optional(),
-  profile_amount:z.number().optional(),
+  profile_amount:z.string().optional(),
   profile_payment: z.string().optional(),
   profile_remark: z.string().optional(),
   profile_new_stall_no: z.string().optional(),
-  profile_received_amt: z.number().optional(),
+  profile_received_amt: z.string().optional(),
   distributor_agent_city: z.string().min(1, "City  is required"),
   distributor_agent_state: z.string().min(1, "State  is required"),
 
@@ -105,7 +106,7 @@ const EditParticipation = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const navigate = useNavigate();
-
+  const handleKeyDown = useNumericInput();
   // Fetch participant data
   const { data: participantData, isLoading } = useQuery({
     queryKey: ["participant", id],
@@ -164,14 +165,14 @@ const EditParticipation = () => {
       stall_type: "",
       profile_stall_size: "",
       profile_stall_no: "",
-      profile_amount: 0,
+      profile_amount: '0',
       profile_payment: "",
       profile_remark: "",
       profile_new_stall_no: "",
-      profile_received_amt: 0,
+      profile_received_amt: '0',
       distributor_agent_city: "",
       distributor_agent_state: "",
-      profile_status: "Pending",
+      profile_status: "",
     },
   });
 
@@ -205,14 +206,14 @@ const EditParticipation = () => {
         stall_type: participantData.stall_type || "",
         profile_stall_size: participantData.profile_stall_size || "",
         profile_stall_no: participantData.profile_stall_no || "",
-        profile_amount: participantData.profile_amount || 0,
+        profile_amount: participantData.profile_amount?.toString() || '0',
         profile_payment: participantData.profile_payment || "",
         profile_remark: participantData.profile_remark || "",
         profile_new_stall_no: participantData.profile_new_stall_no || "",
-        profile_received_amt: participantData.profile_received_amt || 0,
+        profile_received_amt: participantData.profile_received_amt?.toString() || "0",
         distributor_agent_city: participantData.distributor_agent_city || "",
         distributor_agent_state: participantData.distributor_agent_state || "",
-        profile_status: participantData.profile_status || "Pending",
+        profile_status: participantData.profile_status || "",
       });
     }
   }, [participantData, form.reset]);
@@ -537,7 +538,7 @@ const EditParticipation = () => {
                 )}
               />
               
-              <CalculateAmountDialog form={form} />
+              <EditCalculateAmountDialog form={form} />
               </div>
               {/* stall no  */}
               <FormField
@@ -564,13 +565,10 @@ const EditParticipation = () => {
                     <FormControl>
                       <Input
                         placeholder="Enter Amount"
-                         type="number"
-                        {...field}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          field.onChange(value === "" ? 0 : Number(value));
-                        }}
-                        value={field.value || ""} 
+                         type="text"
+                       
+                         {...field}
+                         onKeyDown={handleKeyDown}
                       />
                     </FormControl>
                     <FormMessage />
@@ -614,12 +612,13 @@ const EditParticipation = () => {
                 name="profile_received_amt"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Received Amount</FormLabel>
+                    <FormLabel>Received Amount Test</FormLabel>
                     <FormControl>
                       <Input
-                      type="number"
+                      type="text"
                         placeholder="Enter Received Amount details"
                         {...field}
+                        onKeyDown={handleKeyDown}
                       />
                     </FormControl>
                     <FormMessage />
@@ -668,7 +667,7 @@ const EditParticipation = () => {
               />
 
               {/* // In the status field rendering */}
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="profile_status"
                 render={({ field }) => (
@@ -696,7 +695,34 @@ const EditParticipation = () => {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
+              <FormField
+  control={form.control}
+  name="profile_status"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Participation Status</FormLabel>
+      <Select
+        onValueChange={field.onChange}
+        value={field.value}
+      >
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Status" />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          {PROFILE_STATUS_OPTIONS.map((status) => (
+            <SelectItem key={status.value} value={status.value}>
+              {status.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
               {/* Additional Remarks */}
               <FormField
                 control={form.control}
@@ -743,3 +769,6 @@ const EditParticipation = () => {
 };
 
 export default EditParticipation;
+
+
+// change to without zod 
