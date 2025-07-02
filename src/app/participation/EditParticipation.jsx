@@ -44,6 +44,12 @@ const ADVERTISE_OPTIONS = [
   { id: "fashion_show", label: "Fashion Show" },
   { id: "be_an_sponsor", label: "Be a Sponsor" },
 ];
+const FEATURE_OPTIONS = [
+  { id: "logo_received", label: "Logo Received" },
+  { id: "add_received", label: "Add Received" },
+  { id: "staff_participant_received", label: "Staff Participant Received" },
+ 
+];
 
 const PROFILE_STATUS_OPTIONS = [
   { value: "Pending", label: "Pending" },
@@ -70,6 +76,11 @@ const participationSchema = z.object({
   fashion_show: z.string(),
   be_an_sponsor: z.string(),
 
+  // feature option 
+  logo_received: z.string(),
+  add_received: z.string(),
+  staff_participant_received: z.string(),
+
   product_description: z.string().min(1, "Product description is required"),
   manufacturer_name: z.string().optional(),
   distributor_agent_name: z.string().optional(),
@@ -90,6 +101,7 @@ const participationSchema = z.object({
   profile_stall_no: z.string().optional(),
   profile_amount:z.string().optional(),
   profile_payment: z.string().optional(),
+  profile_payment_type: z.string().optional(),
   profile_remark: z.string().optional(),
   profile_new_stall_no: z.string().optional(),
   profile_received_amt: z.string().optional(),
@@ -152,6 +164,12 @@ const EditParticipation = () => {
       branding_at_venue: "No",
       fashion_show: "No",
       be_an_sponsor: "No",
+
+      staff_participant_received: "No",
+      add_received: "No",
+      logo_received: "No",
+
+
       product_description: "",
       manufacturer_name: "",
       distributor_agent_name: "",
@@ -167,6 +185,7 @@ const EditParticipation = () => {
       profile_stall_no: "",
       profile_amount: '0',
       profile_payment: "",
+      profile_payment_type: "",
       profile_remark: "",
       profile_new_stall_no: "",
       profile_received_amt: '0',
@@ -192,6 +211,12 @@ const EditParticipation = () => {
         branding_at_venue: participantData.branding_at_venue || "No",
         fashion_show: participantData.fashion_show || "No",
         be_an_sponsor: participantData.be_an_sponsor || "No",
+
+        logo_received: participantData.logo_received || "No",
+        add_received: participantData.add_received || "No",
+        staff_participant_received: participantData.staff_participant_received || "No",
+
+
         product_description: participantData.product_description || "",
         manufacturer_name: participantData.manufacturer_name || "",
         distributor_agent_name: participantData.distributor_agent_name || "",
@@ -208,6 +233,7 @@ const EditParticipation = () => {
         profile_stall_no: participantData.profile_stall_no || "",
         profile_amount: participantData.profile_amount?.toString() || '0',
         profile_payment: participantData.profile_payment || "",
+        profile_payment_type: participantData.profile_payment_type || "",
         profile_remark: participantData.profile_remark || "",
         profile_new_stall_no: participantData.profile_new_stall_no || "",
         profile_received_amt: participantData.profile_received_amt?.toString() || "0",
@@ -269,6 +295,41 @@ const EditParticipation = () => {
               <FormItem>
                 <FormControl>
                   <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={option.id}
+                      checked={field.value === "Yes"}
+                      onCheckedChange={(checked) => {
+                        form.setValue(option.id, checked ? "Yes" : "No");
+                      }}
+                    />
+                    <label
+                      htmlFor={option.id}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {option.label}
+                    </label>
+                  </div>
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        ))}
+      </div>
+    </FormItem>
+  );
+  const renderFeatureCheckboxes = () => (
+    <FormItem className="md:col-span-2">
+      <FormLabel>Branding</FormLabel>
+      <div className="flex flex-row justify-between gap-4  ">
+        {FEATURE_OPTIONS.map((option) => (
+          <FormField
+            key={option.id}
+            control={form.control}
+            name={option.id}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <div className="flex items-center  space-x-2">
                     <Checkbox
                       id={option.id}
                       checked={field.value === "Yes"}
@@ -591,6 +652,20 @@ const EditParticipation = () => {
                   </FormItem>
                 )}
               />
+            {/* payment Type  */}
+              <FormField
+                control={form.control}
+                name="profile_payment_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Type</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter payment type" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* New Stall No  */}
               <FormField
@@ -612,7 +687,7 @@ const EditParticipation = () => {
                 name="profile_received_amt"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Received Amount Test</FormLabel>
+                    <FormLabel>Received Amount</FormLabel>
                     <FormControl>
                       <Input
                       type="text"
@@ -723,6 +798,8 @@ const EditParticipation = () => {
     </FormItem>
   )}
 />
+
+{renderFeatureCheckboxes()}
               {/* Additional Remarks */}
               <FormField
                 control={form.control}
@@ -741,6 +818,8 @@ const EditParticipation = () => {
                   </FormItem>
                 )}
               />
+
+
             </div>
 
             <div className="flex flex-row mt-6 gap-6">

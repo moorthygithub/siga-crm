@@ -273,6 +273,34 @@ const ParticipationList = () => {
       });
     },
   });
+  const createConfirmationMutation = useMutation({
+    mutationFn: async (id) => {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${BASE_URL}/api/panel-create-participant-confirmation/${id}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Confirmation created successfully",
+        variant: "default",
+      });
+      queryClient.invalidateQueries(["participants"]);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create invoice",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Function to handle invoice download
   const handleDownloadInvoice = async (id) => {
@@ -560,6 +588,7 @@ const ParticipationList = () => {
               const status = row.original.profile_status;
               const hasPerformaInvoice = row.original.profile_p_invoice_no;
               const hasInvoice = row.original.profile_invoice_no;
+              const hasConfirmation = row.original.profile_c_no;
               const mobile = row.original.rep1_mobile;
               const isDownloading =
                 downloadProgress[registration] !== undefined;
@@ -724,9 +753,47 @@ const ParticipationList = () => {
                       )}
                     </>
                   )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                   {status === "Stall Issued" && (
                     <>
-                   
+                    {!hasConfirmation ? (
+                     <Button
+    variant="ghost"
+    size="icon"
+    disabled={
+      !distributorState || createConfirmationMutation.isPending
+    }
+    onClick={(e) => {
+      e.stopPropagation();
+      createConfirmationMutation.mutate(registration);
+    }}
+    title={
+      !distributorState
+        ? "Distributor state is required"
+        : "Create Confirmation"
+    }
+  >
+    {createConfirmationMutation.isPending ? (
+      <Loader2 className="h-4 w-4 animate-spin " />
+    ) : (
+      <FileText className="h-4 w-4 text-green-800 hover:text-red-700" />
+    )}
+  </Button>
+  ):(
                       <Button
                         variant="ghost"
                         size="icon"
@@ -740,6 +807,7 @@ const ParticipationList = () => {
                    
                         <SquareArrowDown className="h-4 w-4" />
                       </Button>
+                      )}
                     </>
                   )}
                 </div>

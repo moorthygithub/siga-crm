@@ -116,7 +116,7 @@ const ParticipantView = ({id}) => {
           <div className="w-full h-64 print:w-40 print:absolute print:h-40 print:top-2 print:left-2 bg-gray-200 flex items-center justify-center">
             {registrationDetails.idcardsub_rep_image ? (
               <img
-                src={`https://agsrebuild.store/public/idcard_images/${registrationDetails.idcardsub_rep_image}`}
+                src={`http://southindiagarmentsassociation.com/public/idcard_images/${registrationDetails.idcardsub_rep_image}`}
                 alt="Participant"
                 className="w-full h-full object-cover"
               />

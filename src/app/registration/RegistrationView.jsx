@@ -117,7 +117,7 @@ const RegistrationView = ({ id }) => {
             <div className="w-full h-64 print:w-40 print:absolute print:h-40 print:top-2 print:left-2 bg-gray-200 flex items-center justify-center">
               {registrationDetails.fair_person_image ? (
                 <img
-                  src={`https://agsrebuild.store/public/register_images/${registrationDetails.fair_person_image}`}
+                  src={`http://southindiagarmentsassociation.com/public/idcard_images/${registrationDetails.fair_person_image}`}
                   alt="Registrant"
                   className="w-full h-full object-cover"
                 />
