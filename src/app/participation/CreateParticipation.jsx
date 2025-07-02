@@ -87,7 +87,7 @@ const participationSchema = z.object({
   profile_email: z.string().email("Invalid email address"),
   profile_stall_size: z.string().min(1, "Stall size is required"), 
   profile_stall_no: z.string().min(1, "Stall number is required"), 
-  profile_amount: z.number().min(1, "Amount is required"), //
+  profile_amount: z.any(), //
   profile_payment: z.string(), 
   profile_remark: z.string(), 
   profile_new_stall_no: z.string(), 
