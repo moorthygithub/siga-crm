@@ -77,7 +77,7 @@ const Home = () => {
         />
         <MetricCard 
           title="Today's Printing Sum" 
-          value={`₹${data.current_day_printing_sum}`} 
+          value={`${data.current_day_printing_sum}`} 
           icon={IndianRupee}
         />
         <MetricCard 
@@ -87,7 +87,7 @@ const Home = () => {
         />
         <MetricCard 
           title="Total Printing Sum" 
-          value={`₹${data.total_printing_sum}`} 
+          value={`${data.total_printing_sum}`} 
           icon={TrendingUp}
         />
       </div>
@@ -104,7 +104,7 @@ const Home = () => {
               </div>
               <div className="flex justify-between">
                 <span>1 Day Back Printing Sum</span>
-                <span>₹{data.one_day_back_printing_sum}</span>
+                <span>{data.one_day_back_printing_sum}</span>
               </div>
               <div className="flex justify-between">
                 <span>2 Days Back Printing Count</span>
@@ -112,7 +112,7 @@ const Home = () => {
               </div>
               <div className="flex justify-between">
                 <span>2 Days Back Printing Sum</span>
-                <span>₹{data.two_day_back_printing_sum}</span>
+                <span>{data.two_day_back_printing_sum}</span>
               </div>
             </div>
           </CardContent>

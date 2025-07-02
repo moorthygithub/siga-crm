@@ -612,8 +612,8 @@ const ParticipationList = () => {
       : [
           {
             id: "actions",
+
             header: "Action",
-            enableHiding: false,
             cell: ({ row }) => {
               const registration = row.original.id;
               const distributorState = row.original.distributor_agent_state;
@@ -622,220 +622,248 @@ const ParticipationList = () => {
               const hasInvoice = row.original.profile_invoice_no;
               const hasConfirmation = row.original.profile_c_no;
               const mobile = row.original.rep1_mobile;
-              const isDownloading = downloadProgress[registration] !== undefined;
-    
+              const isDownloading =
+                downloadProgress[registration] !== undefined;
+
               return (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open Action</span>
-                      <MoreHorizontal className="h-4 w-4" />
+                <div className="flex flex-row">
+                  {/* <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => handleWhatsAppClick(e, mobile)}
+                    title="Open WhatsApp"
+                    className="hover:text-green-600"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </Button> */}
+
+                  <ParticipationMessage
+                    onClick={(e) => handleWhatsAppClick(e, mobile)}
+                    className="hover:text-green-600"
+                  />
+
+                  {/* <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      localStorage.setItem("selectedStatus", selectedStatus);
+
+                      navigate(`/view-participants/${registration}`);
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button> */}
+
+                  <ParticipationViews
+                    onClick={() => {
+                      localStorage.setItem("selectedStatus", selectedStatus);
+                      localStorage.setItem(
+                        "lastEditedParticipantId",
+                        registration
+                      );
+                      navigate(`/view-participants/${registration}`);
+                    }}
+                  />
+                  {/* <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      localStorage.setItem("selectedStatus", selectedStatus);
+                      navigate(`/edit-participants/${registration}`);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button> */}
+                  <ParticipationEdit
+                    onClick={() => {
+                      localStorage.setItem("selectedStatus", selectedStatus);
+                      localStorage.setItem(
+                        "lastEditedParticipantId",
+                        registration
+                      );
+                      navigate(`/edit-participants/${registration}`);
+                    }}
+                  />
+                  {!isRestrictedUserDelete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(e, registration);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56"    >
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    
-                    <DropdownMenuItem 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleWhatsAppClick(e, mobile);
-              }}
-              className="flex items-center gap-2"
-            >
-              <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
-              WhatsApp
-            </DropdownMenuItem>
-  
-            <DropdownMenuItem
-              onClick={() => {
-                localStorage.setItem("selectedStatus", selectedStatus);
-                localStorage.setItem("lastEditedParticipantId", registration);
-                navigate(`/view-participants/${registration}`);
-              }}
-              
-              className="flex items-center gap-2"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              View
-            </DropdownMenuItem>
-  
-            <DropdownMenuItem
-              onClick={() => {
-                localStorage.setItem("selectedStatus", selectedStatus);
-                localStorage.setItem("lastEditedParticipantId", registration);
-                navigate(`/edit-participants/${registration}`);
-              }}
-              className="flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-                   
-    
-                   
-                    {/* Delete Participant */}
-                    {!isRestrictedUserDelete && (
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(e, registration);
-                        }}
-                        className="text-red-600 focus:text-red-600"
+                  )}
+
+                  {status === "Stall Issued" && (
+                    <>
+                      {!hasPerformaInvoice ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={!distributorState}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            createPerformaMutation.mutate(registration);
+                          }}
+                          title={
+                            !distributorState
+                              ? "Distributor state is required"
+                              : "Create Performa"
+                          }
+                        >
+                          {createPerformaMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <SquareParking className="h-4 w-4" />
+                          )}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadPerforma(
+                              registration,
+                              row.original.brand_name
+                            );
+                          }}
+                          disabled={isDownloading}
+                          title="Download Performa"
+                          className=" hover:text-red-700"
+                        >
+                          {isDownloading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
+                    </>
+                  )}
+                  {status === "Stall Issued" && hasPerformaInvoice && (
+                    <>
+                      {!hasInvoice ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={
+                            !distributorState || createInvoiceMutation.isPending
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            createInvoiceMutation.mutate(registration);
+                          }}
+                          title={
+                            !distributorState
+                              ? "Distributor state is required"
+                              : "Create Invoice"
+                          }
+                        >
+                          {createInvoiceMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <FileText className="h-4 w-4" />
+                          )}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadInvoice(registration);
+                          }}
+                          title="Download Invoice"
+                          className=" hover:text-red-700"
+                        >
+                          <SquareArrowDown className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </>
+                  )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                  {status === "Stall Issued" && (
+                    <>
+                    {!hasConfirmation ? (
+                     <Button
+    variant="ghost"
+    size="icon"
+    disabled={
+      !distributorState || createConfirmationMutation.isPending
+    }
+    onClick={(e) => {
+      e.stopPropagation();
+      createConfirmationMutation.mutate(registration);
+    }}
+    title={
+      !distributorState
+        ? "Distributor state is required"
+        : "Create Confirmation"
+    }
+  >
+    {createConfirmationMutation.isPending ? (
+      <Loader2 className="h-4 w-4 animate-spin " />
+    ) : (
+      <FileText className="h-4 w-4 text-green-800 hover:text-red-700" />
+    )}
+  </Button>
+  ):(
+    <>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Send Confirmation Mail"
+                       
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSendMailConfirmation.mutate(registration);
+                          }}
+                        className=" text-red-800 hover:text-green-700"
                       >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        <span>Delete</span>
-                      </DropdownMenuItem>
-                    )}
-    
-                    {/* Performa Invoice Section */}
-                    {status === "Stall Issued" && (
-                      <>
-                        {!hasPerformaInvoice ? (
-                          <DropdownMenuItem
-                            disabled={!distributorState}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              createPerformaMutation.mutate(registration);
-                            }}
-                            title={
-                              !distributorState
-                                ? "Distributor state is required"
-                                : "Create Performa"
-                            }
-                          >
-                            {createPerformaMutation.isPending ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <SquareParking className="mr-2 h-4 w-4" />
-                            )}
-                            <span>Create Performa</span>
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDownloadPerforma(
-                                registration,
-                                row.original.brand_name
-                              );
-                            }}
-                            disabled={isDownloading}
-                            title="Download Performa"
-                          >
-                            {isDownloading ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <Download className="mr-2 h-4 w-4" />
-                            )}
-                            <span>Download Performa</span>
-                          </DropdownMenuItem>
-                        )}
+                   
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Confirmation Invoice"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadConfirmationInvoice(registration);
+                          }}
+                        className=" text-green-800 hover:text-red-700"
+                      >
+                   
+                        <SquareArrowDown className="h-4 w-4" />
+                      </Button>
                       </>
-                    )}
-    
-                    {/* Regular Invoice Section */}
-                    {status === "Stall Issued" && hasPerformaInvoice && (
-                      <>
-                        {!hasInvoice ? (
-                          <DropdownMenuItem
-                            disabled={
-                              !distributorState || createInvoiceMutation.isPending
-                            }
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              createInvoiceMutation.mutate(registration);
-                            }}
-                            title={
-                              !distributorState
-                                ? "Distributor state is required"
-                                : "Create Invoice"
-                            }
-                          >
-                            {createInvoiceMutation.isPending ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <FileText className="mr-2 h-4 w-4" />
-                            )}
-                            <span>Create Invoice</span>
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDownloadInvoice(registration);
-                            }}
-                            title="Download Invoice"
-                          >
-                            <SquareArrowDown className="mr-2 h-4 w-4" />
-                            <span>Download Invoice</span>
-                          </DropdownMenuItem>
-                        )}
-                      </>
-                    )}
-    
-                    {/* Confirmation Section */}
-                    {status === "Stall Issued" && (
-                      <>
-                        {!hasConfirmation ? (
-                          <DropdownMenuItem
-                            disabled={
-                              !distributorState || createConfirmationMutation.isPending
-                            }
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              createConfirmationMutation.mutate(registration);
-                            }}
-                            title={
-                              !distributorState
-                                ? "Distributor state is required"
-                                : "Create Confirmation"
-                            }
-                          >
-                            {createConfirmationMutation.isPending ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <FileText className="mr-2 h-4 w-4 text-green-800" />
-                            )}
-                            <span>Create Confirmation</span>
-                          </DropdownMenuItem>
-                        ) : (
-                          <>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSendMailConfirmation.mutate(registration);
-                              }}
-                              title="Send Confirmation Mail"
-                            >
-                               {handleSendMailConfirmation.isPending ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <Mail className="mr-2 h-4 w-4 text-red-800" />
-                            )}
-                             
-                              <span>Send Confirmation Mail</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDownloadConfirmationInvoice(registration);
-                              }}
-                              title="Confirmation Invoice"
-                            >
-                              <SquareArrowDown className="mr-2 h-4 w-4 text-green-800" />
-                              <span>Download Confirmation</span>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      )}
+                    </>
+                  )}
+                </div>
               );
             },
           },
-        ])
+        ]),
   ];
 
   // Create the table instance

@@ -16,6 +16,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   Loader2,
+  SquareArrowDown,
   TrendingUp,
 } from "lucide-react";
 
@@ -92,6 +93,62 @@ const ParticipantSummary = () => {
       console.error("Error downloading the Excel report:", error);
     }
   };
+  const handleDownloadSummaryWithAmount = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/panel-download-participant-summary-with-amount`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        }
+      );
+
+      // Create a blob from the response
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "P-SummaryWithAmount.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error downloading the Excel report:", error);
+    }
+  };
+  const handleDownloadSummaryWithoutAmount = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/panel-download-participant-summary-without-amount`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        }
+      );
+
+      // Create a blob from the response
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "P-SummaryWithoutAmount.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error downloading the Excel report:", error);
+    }
+  };
 
   // State for table management
   const [sorting, setSorting] = useState([]);
@@ -133,9 +190,9 @@ const ParticipantSummary = () => {
       cell: ({ row }) => <div>{row.getValue("rep1_mobile")}</div>,
     },
     {
-      accessorKey: "profile_stall_no",
-      header: "Stall Number",
-      cell: ({ row }) => <div>{row.getValue("profile_stall_no")}</div>,
+      accessorKey: "profile_stall_size",
+      header: "Stall Size",
+      cell: ({ row }) => <div>{row.getValue("profile_stall_size")}</div>,
     },
     {
       accessorKey: "profile_new_stall_no",
@@ -227,7 +284,34 @@ const ParticipantSummary = () => {
     <Page>
       <div className="flex  items-center justify-between text-left  text-gray-800 font-[400] p-4 mb-4">
         <h1 className="text-xl" >Participant Summary</h1>
-        <Button onClick={handleDownload}>Download P-Summary</Button>
+     <div className="flex flex-col lg:flex-row items-center gap-2 w-full md:w-auto">
+            <Button 
+              onClick={handleDownloadSummaryWithoutAmount}
+              className="whitespace-nowrap"
+              size="sm"
+            >
+              <SquareArrowDown className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Without Amount</span>
+              <span className="sm:hidden">W/O Amt</span>
+            </Button>
+            <Button 
+              onClick={handleDownloadSummaryWithAmount}
+              className="whitespace-nowrap"
+              size="sm"
+            >
+              <SquareArrowDown className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">With Amount</span>
+              <span className="sm:hidden">With Amt</span>
+            </Button>
+            <Button 
+              onClick={handleDownload}
+              className="whitespace-nowrap"
+              size="sm"
+            >
+              <SquareArrowDown className="h-4 w-4 mr-2" />
+              Full Summary
+            </Button>
+          </div>
       </div>
       <div className="grid grid-cols-1   md:grid-cols-2 lg:grid-cols-5 gap-4 p-4">
         <MetricCard
