@@ -28,6 +28,7 @@ import {
   SquarePlus,
   MessageCircle,
   Mail,
+  MessageCircleCodeIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -245,6 +246,96 @@ const ParticipationList = () => {
       }, 3000);
     }
   }, []);
+  const handleWhatsAppPdf = async (registration, brandName, profileStatus) => {
+    try {
+     
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-download-participant-confirmation/${registration}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob",
+        }
+      );
+  
+     
+      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+      
+     
+      const file = new File([pdfBlob], `confirmation-invoice-${registration}.pdf`, {
+        type: "application/pdf",
+      });
+  
+    
+      const message = `Confirmation Invoice for ${brandName || ""}\n\nParticipant ID: ${registration}\nStatus: ${profileStatus}\n\nPlease find the attached confirmation document.`;
+  
+     
+      try {
+        if (
+          navigator.share &&
+          navigator.canShare &&
+          navigator.canShare({ files: [file] })
+        ) {
+          await navigator.share({
+            files: [file],
+            text: message,
+          });
+          return;
+        }
+      } catch (shareError) {
+        console.log("Web Share API failed:", shareError);
+      }
+  
+      
+      if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        const fileUrl = URL.createObjectURL(file);
+  
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              text: message,
+              url: fileUrl,
+            });
+            URL.revokeObjectURL(fileUrl);
+            return;
+          } catch (mobileShareError) {
+            console.log("Mobile share failed:", mobileShareError);
+          }
+        }
+  
+      
+        const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+        window.location.href = whatsappUrl;
+  
+     
+        setTimeout(() => {
+          const webWhatsappUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(
+            message
+          )}`;
+          window.open(webWhatsappUrl, "_blank");
+        }, 1000);
+  
+        URL.revokeObjectURL(fileUrl);
+        return;
+      }
+  
+     
+      const webWhatsappUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(
+        message
+      )}`;
+      window.open(webWhatsappUrl, "_blank");
+  
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to share confirmation PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Update createInvoiceMutation
   const createInvoiceMutation = useMutation({
     mutationFn: async (id) => {
@@ -825,6 +916,22 @@ const ParticipationList = () => {
                             >
                               <SquareArrowDown className="mr-2 h-4 w-4 text-green-800" />
                               <span>Download Confirmation</span>
+                            </DropdownMenuItem>
+
+
+                            <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleWhatsAppPdf(
+                                registration,
+                                row.original.brand_name,
+                                row.original.profile_status
+                              );
+                            }}
+                              title="Send Pdf"
+                            >
+                              <MessageCircleCodeIcon className="mr-2 h-4 w-4 text-red-800" />
+                              <span>Whatsapp Pdf</span>
                             </DropdownMenuItem>
                           </>
                         )}

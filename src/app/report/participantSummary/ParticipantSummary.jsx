@@ -37,6 +37,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+
 const MetricCard = ({ title, value, icon: Icon, trend }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -50,8 +52,50 @@ const MetricCard = ({ title, value, icon: Icon, trend }) => (
   </Card>
 );
 
+const COLORS = [
+  "#4F46E5", // Indigo
+  "#10B981", // Emerald
+  "#F59E0B", // Amber
+  "#EF4444", // Red
+  "#8B5CF6", // Violet
+];
+
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 border rounded-lg shadow-lg">
+        <p className="font-bold text-gray-900">{payload[0].name}</p>
+        <p className="text-sm text-gray-600">Count: {payload[0].value}</p>
+        <p className="text-xs text-gray-500 mt-1">
+          {((payload[0].payload.percent * 100).toFixed(1))}% of total
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
+const renderCustomizedLegend = (props) => {
+  const { payload } = props;
+  return (
+    <div className="flex flex-wrap justify-center gap-3 mt-4">
+      {payload.map((entry, index) => (
+        <div key={`legend-${index}`} className="flex items-center">
+          <div
+            className="w-3 h-3 rounded-full mr-2"
+            style={{ backgroundColor: entry.color }}
+          />
+          <span className="text-sm text-gray-600">
+            {entry.value}: {entry.payload.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const ParticipantSummary = () => {
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["participantSummaryData"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
@@ -65,6 +109,58 @@ const ParticipantSummary = () => {
     },
   });
 
+  const getChartData = () => {
+    if (!data) return [];
+    
+    
+    const safeNumber = (value) => {
+      const num = Number(value);
+      return isNaN(num) || num < 0 ? 0 : num;
+    };
+
+   
+    const pending = safeNumber(data.participant_pending_count);
+    const confirmed = safeNumber(data.participant_confirm_count);
+    const stallIssued = safeNumber(data.participant_stall_issued_count);
+    const canceled = safeNumber(data.participant_cancel_count);
+    
+    
+    const total = pending + confirmed + stallIssued + canceled;
+    
+    
+    if (total === 0) {
+      return [];
+    }
+
+ 
+    const chartData = [
+      { 
+        name: "Pending", 
+        value: pending,
+        percent: pending / total
+      },
+      { 
+        name: "Confirmed", 
+        value: confirmed,
+        percent: confirmed / total
+      },
+      { 
+        name: "Stall Issued", 
+        value: stallIssued,
+        percent: stallIssued / total
+      },
+      { 
+        name: "Canceled", 
+        value: canceled,
+        percent: canceled / total
+      },
+    ].filter(item => item.value > 0); 
+
+    return chartData;
+  };
+  
+  const chartData = getChartData();
+
   const handleDownload = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -77,7 +173,6 @@ const ParticipantSummary = () => {
         }
       );
 
-      // Create a blob from the response
       const url = window.URL.createObjectURL(
         new Blob([response.data], {
           type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -89,10 +184,12 @@ const ParticipantSummary = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading the Excel report:", error);
     }
   };
+
   const handleDownloadSummaryWithAmount = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -105,7 +202,6 @@ const ParticipantSummary = () => {
         }
       );
 
-      // Create a blob from the response
       const url = window.URL.createObjectURL(
         new Blob([response.data], {
           type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -117,10 +213,12 @@ const ParticipantSummary = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading the Excel report:", error);
     }
   };
+
   const handleDownloadSummaryWithoutAmount = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -133,7 +231,6 @@ const ParticipantSummary = () => {
         }
       );
 
-      // Create a blob from the response
       const url = window.URL.createObjectURL(
         new Blob([response.data], {
           type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -145,6 +242,7 @@ const ParticipantSummary = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading the Excel report:", error);
     }
@@ -282,65 +380,120 @@ const ParticipantSummary = () => {
 
   return (
     <Page>
-      <div className="flex  items-center justify-between text-left  text-gray-800 font-[400] p-4 mb-4">
-        <h1 className="text-xl" >Participant Summary</h1>
-     <div className="flex flex-col lg:flex-row items-center gap-2 w-full md:w-auto">
-            <Button 
-              onClick={handleDownloadSummaryWithoutAmount}
-              className="whitespace-nowrap"
-              size="sm"
-            >
-              <SquareArrowDown className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Without Amount</span>
-              <span className="sm:hidden">W/O Amt</span>
-            </Button>
-            <Button 
-              onClick={handleDownloadSummaryWithAmount}
-              className="whitespace-nowrap"
-              size="sm"
-            >
-              <SquareArrowDown className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">With Amount</span>
-              <span className="sm:hidden">With Amt</span>
-            </Button>
-            <Button 
-              onClick={handleDownload}
-              className="whitespace-nowrap"
-              size="sm"
-            >
-              <SquareArrowDown className="h-4 w-4 mr-2" />
-              Full Summary
-            </Button>
-          </div>
+      <div className="flex items-center justify-between text-left text-gray-800 font-[400] p-4 mb-4">
+        <h1 className="text-xl">Participant Summary</h1>
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 w-full md:w-auto">
+          <Button 
+            onClick={handleDownloadSummaryWithoutAmount}
+            className="whitespace-nowrap"
+            size="sm"
+          >
+            <SquareArrowDown className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Without Amount</span>
+            <span className="sm:hidden">W/O Amt</span>
+          </Button>
+          <Button 
+            onClick={handleDownloadSummaryWithAmount}
+            className="whitespace-nowrap"
+            size="sm"
+          >
+            <SquareArrowDown className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">With Amount</span>
+            <span className="sm:hidden">With Amt</span>
+          </Button>
+          <Button 
+            onClick={handleDownload}
+            className="whitespace-nowrap"
+            size="sm"
+          >
+            <SquareArrowDown className="h-4 w-4 mr-2" />
+            Full Summary
+          </Button>
+        </div>
       </div>
-      <div className="grid grid-cols-1   md:grid-cols-2 lg:grid-cols-5 gap-4 p-4">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 p-4">
         <MetricCard
           title="Pending Count"
-          value={data.participant_pending_count}
+          value={data?.participant_pending_count || 0}
           icon={Activity}
         />
         <MetricCard
           title="Confirm Count"
-          value={`${data.participant_confirm_count}`}
+          value={data?.participant_confirm_count || 0}
           icon={Activity}
         />
         <MetricCard
           title="Stall Issued Count"
-          value={data.participant_stall_issued_count}
+          value={data?.participant_stall_issued_count || 0}
           icon={Activity}
         />
         <MetricCard
           title="Cancel Count"
-          value={`${data.participant_cancel_count}`}
+          value={data?.participant_cancel_count || 0}
           icon={TrendingUp}
         />
         <MetricCard
           title="Total Count"
-          value={`${data.participant_total_count}`}
+          value={data?.participant_total_count || 0}
           icon={TrendingUp}
         />
       </div>
-      <div className="w-full  p-4">
+
+      <div className="">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">
+              Participant Status Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="h-[470px] sm:h-[470px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={120}
+                  paddingAngle={2}
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: ${value}`}
+                  labelLine={false}
+                  legendType="circle"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={COLORS[index % COLORS.length]} 
+                      stroke="#fff"
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  content={<CustomTooltip />}
+                  wrapperStyle={{ zIndex: 1000 }}
+                />
+                <Legend 
+                  content={renderCustomizedLegend}
+                  wrapperStyle={{ paddingTop: '15px' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            {chartData.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <p className="text-lg font-medium">No Data Available</p>
+                  <p className="text-sm">Chart will display when data is available</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="w-full p-4">
         {/* Searching and column filter */}
         <div className="flex items-center py-4">
           <Input
