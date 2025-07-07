@@ -29,6 +29,7 @@ import {
   MessageCircle,
   Mail,
   MessageCircleCodeIcon,
+  Copy,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -248,7 +249,6 @@ const ParticipationList = () => {
   }, []);
   const handleWhatsAppPdf = async (registration, brandName, profileStatus) => {
     try {
-     
       const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-download-participant-confirmation/${registration}`,
@@ -259,19 +259,21 @@ const ParticipationList = () => {
           responseType: "blob",
         }
       );
-  
-     
-      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
-      
-     
-      const file = new File([pdfBlob], `confirmation-invoice-${registration}.pdf`, {
-        type: "application/pdf",
-      });
-  
-    
-      const message = `Confirmation Invoice for ${brandName || ""}\n\nParticipant ID: ${registration}\nStatus: ${profileStatus}\n\nPlease find the attached confirmation document.`;
-  
-     
+
+      const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+
+      const file = new File(
+        [pdfBlob],
+        `confirmation-invoice-${registration}.pdf`,
+        {
+          type: "application/pdf",
+        }
+      );
+
+      const message = `Confirmation Invoice for ${
+        brandName || ""
+      }\n\nParticipant ID: ${registration}\nStatus: ${profileStatus}\n\nPlease find the attached confirmation document.`;
+
       try {
         if (
           navigator.share &&
@@ -287,11 +289,10 @@ const ParticipationList = () => {
       } catch (shareError) {
         console.log("Web Share API failed:", shareError);
       }
-  
-      
+
       if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
         const fileUrl = URL.createObjectURL(file);
-  
+
         if (navigator.share) {
           try {
             await navigator.share({
@@ -304,29 +305,27 @@ const ParticipationList = () => {
             console.log("Mobile share failed:", mobileShareError);
           }
         }
-  
-      
-        const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+
+        const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(
+          message
+        )}`;
         window.location.href = whatsappUrl;
-  
-     
+
         setTimeout(() => {
           const webWhatsappUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(
             message
           )}`;
           window.open(webWhatsappUrl, "_blank");
         }, 1000);
-  
+
         URL.revokeObjectURL(fileUrl);
         return;
       }
-  
-     
+
       const webWhatsappUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(
         message
       )}`;
       window.open(webWhatsappUrl, "_blank");
-  
     } catch (error) {
       toast({
         title: "Error",
@@ -394,18 +393,17 @@ const ParticipationList = () => {
     },
   });
   const handleSendMailConfirmation = useMutation({
-  
     mutationFn: async (id) => {
       const token = localStorage.getItem("token");
-      console.log("token",token)
+      console.log("token", token);
       const response = await axios.get(
         `${BASE_URL}/api/panel-send-participant-confirmation-receipt-email/${id}`,
-     
+
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
+
       return response.data;
     },
     onSuccess: (data) => {
@@ -419,7 +417,8 @@ const ParticipationList = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description:error.response.data.message ||  "Failed to sent confirmation mail ",
+        description:
+          error.response.data.message || "Failed to sent confirmation mail ",
         variant: "destructive",
       });
     },
@@ -713,8 +712,14 @@ const ParticipationList = () => {
               const hasInvoice = row.original.profile_invoice_no;
               const hasConfirmation = row.original.profile_c_no;
               const mobile = row.original.rep1_mobile;
-              const isDownloading = downloadProgress[registration] !== undefined;
-    
+
+              const isDownloading =
+                downloadProgress[registration] !== undefined;
+              const customerName = row.original.brand_name || "Customer";
+
+              const total = row.original.profile_amount || 0;
+              const received = row.original.profile_received_amt || 0;
+              const balance = Number(total) - Number(received) || 0;
               return (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -723,48 +728,54 @@ const ParticipationList = () => {
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56"    >
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-56 max-h-80 overflow-y-auto"
+                  >
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    
-                    <DropdownMenuItem 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleWhatsAppClick(e, mobile);
-              }}
-              className="flex items-center gap-2"
-            >
-              <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
-              WhatsApp
-            </DropdownMenuItem>
-  
-            <DropdownMenuItem
-              onClick={() => {
-                localStorage.setItem("selectedStatus", selectedStatus);
-                localStorage.setItem("lastEditedParticipantId", registration);
-                navigate(`/view-participants/${registration}`);
-              }}
-              
-              className="flex items-center gap-2"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              View
-            </DropdownMenuItem>
-  
-            <DropdownMenuItem
-              onClick={() => {
-                localStorage.setItem("selectedStatus", selectedStatus);
-                localStorage.setItem("lastEditedParticipantId", registration);
-                navigate(`/edit-participants/${registration}`);
-              }}
-              className="flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-                   
-    
-                   
+
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWhatsAppClick(e, mobile);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                      WhatsApp
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => {
+                        localStorage.setItem("selectedStatus", selectedStatus);
+                        localStorage.setItem(
+                          "lastEditedParticipantId",
+                          registration
+                        );
+                        navigate(`/view-participants/${registration}`);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => {
+                        localStorage.setItem("selectedStatus", selectedStatus);
+                        localStorage.setItem(
+                          "lastEditedParticipantId",
+                          registration
+                        );
+                        navigate(`/edit-participants/${registration}`);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+
                     {/* Delete Participant */}
                     {!isRestrictedUserDelete && (
                       <DropdownMenuItem
@@ -778,7 +789,7 @@ const ParticipationList = () => {
                         <span>Delete</span>
                       </DropdownMenuItem>
                     )}
-    
+
                     {/* Performa Invoice Section */}
                     {status === "Stall Issued" && (
                       <>
@@ -824,14 +835,15 @@ const ParticipationList = () => {
                         )}
                       </>
                     )}
-    
+
                     {/* Regular Invoice Section */}
                     {status === "Stall Issued" && hasPerformaInvoice && (
                       <>
                         {!hasInvoice ? (
                           <DropdownMenuItem
                             disabled={
-                              !distributorState || createInvoiceMutation.isPending
+                              !distributorState ||
+                              createInvoiceMutation.isPending
                             }
                             onClick={(e) => {
                               e.stopPropagation();
@@ -864,14 +876,15 @@ const ParticipationList = () => {
                         )}
                       </>
                     )}
-    
+
                     {/* Confirmation Section */}
                     {status === "Stall Issued" && (
                       <>
                         {!hasConfirmation ? (
                           <DropdownMenuItem
                             disabled={
-                              !distributorState || createConfirmationMutation.isPending
+                              !distributorState ||
+                              createConfirmationMutation.isPending
                             }
                             onClick={(e) => {
                               e.stopPropagation();
@@ -899,12 +912,12 @@ const ParticipationList = () => {
                               }}
                               title="Send Confirmation Mail"
                             >
-                               {handleSendMailConfirmation.isPending ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <Mail className="mr-2 h-4 w-4 text-red-800" />
-                            )}
-                             
+                              {handleSendMailConfirmation.isPending ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <Mail className="mr-2 h-4 w-4 text-red-800" />
+                              )}
+
                               <span>Send Confirmation Mail</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -918,16 +931,15 @@ const ParticipationList = () => {
                               <span>Download Confirmation</span>
                             </DropdownMenuItem>
 
-
                             <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleWhatsAppPdf(
-                                registration,
-                                row.original.brand_name,
-                                row.original.profile_status
-                              );
-                            }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleWhatsAppPdf(
+                                  registration,
+                                  row.original.brand_name,
+                                  row.original.profile_status
+                                );
+                              }}
                               title="Send Pdf"
                             >
                               <MessageCircleCodeIcon className="mr-2 h-4 w-4 text-red-800" />
@@ -937,12 +949,30 @@ const ParticipationList = () => {
                         )}
                       </>
                     )}
+                    {balance > 0 && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+
+                          const textToCopy = `M/s ${customerName}\nPayment Details of 30th SIGA FAIR \Amount: ₹${total}\nAdvance: ₹${received} \nBalance: ₹${balance}\nPlease Make Payment as soon as Poosible`;
+
+                          navigator.clipboard
+                            .writeText(textToCopy)
+                            .then(() => console.log("Copied to clipboard!"))
+                            .catch(() => console.log("Failed to copy"));
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               );
             },
           },
-        ])
+        ]),
   ];
 
   // Create the table instance
