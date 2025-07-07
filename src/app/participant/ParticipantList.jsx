@@ -96,11 +96,11 @@ const ParticipantList = () => {
       header: "Rep. Name",
       cell: ({ row }) => <div>{row.getValue("idcardsub_rep_name")}</div>,
     },
-    {
-      accessorKey: "idcardsub_rep_mobile",
-      header: "Mobile",
-      cell: ({ row }) => <div>{row.getValue("idcardsub_rep_mobile")}</div>,
-    },
+    // {
+    //   accessorKey: "idcardsub_rep_mobile",
+    //   header: "Mobile",
+    //   cell: ({ row }) => <div>{row.getValue("idcardsub_rep_mobile")}</div>,
+    // },
 
     
   ];
