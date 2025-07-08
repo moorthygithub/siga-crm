@@ -47,8 +47,8 @@ const ADVERTISE_OPTIONS = [
 const FEATURE_OPTIONS = [
   { id: "logo_received", label: "Logo Received" },
   { id: "add_received", label: "Add Received" },
+  { id: "photo_received", label: "Photo Received" },
   { id: "staff_participant_received", label: "Staff Participant Received" },
- 
 ];
 
 const PROFILE_STATUS_OPTIONS = [
@@ -76,9 +76,10 @@ const participationSchema = z.object({
   fashion_show: z.string(),
   be_an_sponsor: z.string(),
 
-  // feature option 
+  // feature option
   logo_received: z.string(),
   add_received: z.string(),
+  photo_received: z.string(),
   staff_participant_received: z.string(),
 
   product_description: z.string().min(1, "Product description is required"),
@@ -99,7 +100,7 @@ const participationSchema = z.object({
   stall_type: z.string().optional(),
   profile_stall_size: z.string().optional(),
   profile_stall_no: z.string().optional(),
-  profile_amount:z.string().optional(),
+  profile_amount: z.string().optional(),
   profile_payment: z.string().optional(),
   profile_payment_type: z.string().optional(),
   profile_remark: z.string().optional(),
@@ -111,7 +112,7 @@ const participationSchema = z.object({
 
   // New field for status
   profile_status: z
-    .enum(["Pending", "Confirm", "Cancel", "Stall Issued","Enquiry"])
+    .enum(["Pending", "Confirm", "Cancel", "Stall Issued", "Enquiry"])
     .optional(),
 });
 
@@ -150,7 +151,7 @@ const EditParticipation = () => {
       return response.data.state;
     },
   });
- 
+
   const form = useForm({
     resolver: zodResolver(participationSchema),
     defaultValues: {
@@ -168,8 +169,8 @@ const EditParticipation = () => {
 
       staff_participant_received: "No",
       add_received: "No",
+      photo_received: "No",
       logo_received: "No",
-
 
       product_description: "",
       manufacturer_name: "",
@@ -184,13 +185,13 @@ const EditParticipation = () => {
       stall_type: "",
       profile_stall_size: "",
       profile_stall_no: "",
-      profile_amount: '0',
+      profile_amount: "0",
       profile_payment: "",
       profile_payment_type: "",
       profile_remark: "",
       profile_new_stall_no: "",
-      profile_received_amt: '0',
-      profile_discount_amt: '0',
+      profile_received_amt: "0",
+      profile_discount_amt: "0",
       distributor_agent_city: "",
       distributor_agent_state: "",
       profile_status: "",
@@ -216,8 +217,9 @@ const EditParticipation = () => {
 
         logo_received: participantData.logo_received || "No",
         add_received: participantData.add_received || "No",
-        staff_participant_received: participantData.staff_participant_received || "No",
-
+        photo_received: participantData.photo_received || "No",
+        staff_participant_received:
+          participantData.staff_participant_received || "No",
 
         product_description: participantData.product_description || "",
         manufacturer_name: participantData.manufacturer_name || "",
@@ -233,13 +235,15 @@ const EditParticipation = () => {
         stall_type: participantData.stall_type || "",
         profile_stall_size: participantData.profile_stall_size || "",
         profile_stall_no: participantData.profile_stall_no || "",
-        profile_amount: participantData.profile_amount?.toString() || '0',
+        profile_amount: participantData.profile_amount?.toString() || "0",
         profile_payment: participantData.profile_payment || "",
         profile_payment_type: participantData.profile_payment_type || "",
         profile_remark: participantData.profile_remark || "",
         profile_new_stall_no: participantData.profile_new_stall_no || "",
-        profile_received_amt: participantData.profile_received_amt?.toString() || "0",
-        profile_discount_amt: participantData.profile_discount_amt?.toString() || "0",
+        profile_received_amt:
+          participantData.profile_received_amt?.toString() || "0",
+        profile_discount_amt:
+          participantData.profile_discount_amt?.toString() || "0",
         distributor_agent_city: participantData.distributor_agent_city || "",
         distributor_agent_state: participantData.distributor_agent_state || "",
         profile_status: participantData.profile_status || "",
@@ -355,7 +359,6 @@ const EditParticipation = () => {
       </div>
     </FormItem>
   );
-
   // Update mutation for API submission
   const updateParticipationMutation = useMutation({
     mutationFn: async (data) => {
@@ -588,21 +591,21 @@ const EditParticipation = () => {
 
               {/* Stall Size Details */}
               <div>
-              <FormField
-                control={form.control}
-                name="profile_stall_size"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Stall Size</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter stall size" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <EditCalculateAmountDialog form={form} />
+                <FormField
+                  control={form.control}
+                  name="profile_stall_size"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Stall Size</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter stall size" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <EditCalculateAmountDialog form={form} />
               </div>
               {/* stall no  */}
               <FormField
@@ -629,19 +632,16 @@ const EditParticipation = () => {
                     <FormControl>
                       <Input
                         placeholder="Enter Amount"
-                         type="text"
-                       
-                         {...field}
-                         onKeyDown={handleKeyDown}
+                        type="text"
+                        {...field}
+                        onKeyDown={handleKeyDown}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                  
                 )}
-             
               />
-            {/* payment detaisl  */}
+              {/* payment detaisl  */}
               <FormField
                 control={form.control}
                 name="profile_payment"
@@ -655,7 +655,7 @@ const EditParticipation = () => {
                   </FormItem>
                 )}
               />
-            {/* payment Type  */}
+              {/* payment Type  */}
               <FormField
                 control={form.control}
                 name="profile_payment_type"
@@ -693,7 +693,7 @@ const EditParticipation = () => {
                     <FormLabel>Received Amount</FormLabel>
                     <FormControl>
                       <Input
-                      type="text"
+                        type="text"
                         placeholder="Enter Received Amount details"
                         {...field}
                         onKeyDown={handleKeyDown}
@@ -712,7 +712,7 @@ const EditParticipation = () => {
                     <FormLabel>Discount Amount</FormLabel>
                     <FormControl>
                       <Input
-                      type="text"
+                        type="text"
                         placeholder="Enter Discount Amount details"
                         {...field}
                         onKeyDown={handleKeyDown}
@@ -794,34 +794,31 @@ const EditParticipation = () => {
                 )}
               /> */}
               <FormField
-  control={form.control}
-  name="profile_status"
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Participation Status</FormLabel>
-      <Select
-        onValueChange={field.onChange}
-        value={field.value}
-      >
-        <FormControl>
-          <SelectTrigger>
-            <SelectValue placeholder="Select Status" />
-          </SelectTrigger>
-        </FormControl>
-        <SelectContent>
-          {PROFILE_STATUS_OPTIONS.map((status) => (
-            <SelectItem key={status.value} value={status.value}>
-              {status.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
+                control={form.control}
+                name="profile_status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Participation Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {PROFILE_STATUS_OPTIONS.map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-{renderFeatureCheckboxes()}
+              {renderFeatureCheckboxes()}
               {/* Additional Remarks */}
               <FormField
                 control={form.control}
@@ -840,8 +837,6 @@ const EditParticipation = () => {
                   </FormItem>
                 )}
               />
-
-
             </div>
 
             <div className="flex flex-row mt-6 gap-6">
@@ -871,5 +866,4 @@ const EditParticipation = () => {
 
 export default EditParticipation;
 
-
-// change to without zod 
+// change to without zod
