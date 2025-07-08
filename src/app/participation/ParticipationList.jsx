@@ -719,7 +719,8 @@ const ParticipationList = () => {
 
               const total = row.original.profile_amount || 0;
               const received = row.original.profile_received_amt || 0;
-              const balance = Number(total) - Number(received) || 0;
+              const discount = row.original.profile_discount_amt || 0
+              const balance = Number(total) - (Number(received) + Number(discount)) || 0;
               return (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -949,7 +950,7 @@ const ParticipationList = () => {
                         )}
                       </>
                     )}
-                    {balance > 0 && (
+                    {balance > 0 && status !== "Cancel" && status !== "Enquiry" && (
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();

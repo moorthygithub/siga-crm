@@ -105,6 +105,7 @@ const participationSchema = z.object({
   profile_remark: z.string().optional(),
   profile_new_stall_no: z.string().optional(),
   profile_received_amt: z.string().optional(),
+  profile_discount_amt: z.any().optional(),
   distributor_agent_city: z.string().min(1, "City  is required"),
   distributor_agent_state: z.string().min(1, "State  is required"),
 
@@ -189,6 +190,7 @@ const EditParticipation = () => {
       profile_remark: "",
       profile_new_stall_no: "",
       profile_received_amt: '0',
+      profile_discount_amt: '0',
       distributor_agent_city: "",
       distributor_agent_state: "",
       profile_status: "",
@@ -237,6 +239,7 @@ const EditParticipation = () => {
         profile_remark: participantData.profile_remark || "",
         profile_new_stall_no: participantData.profile_new_stall_no || "",
         profile_received_amt: participantData.profile_received_amt?.toString() || "0",
+        profile_discount_amt: participantData.profile_discount_amt?.toString() || "0",
         distributor_agent_city: participantData.distributor_agent_city || "",
         distributor_agent_state: participantData.distributor_agent_state || "",
         profile_status: participantData.profile_status || "",
@@ -692,6 +695,25 @@ const EditParticipation = () => {
                       <Input
                       type="text"
                         placeholder="Enter Received Amount details"
+                        {...field}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Profile Discount Amount  */}
+              <FormField
+                control={form.control}
+                name="profile_discount_amt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Discount Amount</FormLabel>
+                    <FormControl>
+                      <Input
+                      type="text"
+                        placeholder="Enter Discount Amount details"
                         {...field}
                         onKeyDown={handleKeyDown}
                       />
