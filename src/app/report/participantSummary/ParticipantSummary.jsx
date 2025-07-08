@@ -310,12 +310,18 @@ const ParticipantSummary = () => {
       cell: ({ row }) => <div>₹{row.getValue("profile_received_amt")}</div>,
     },
     {
+      accessorKey: "profile_discount_amt",
+      header: "Discount Amount",
+      cell: ({ row }) => <div>₹{row.getValue("profile_discount_amt")}</div>,
+    },
+    {
       accessorKey: "balance_amount",
       header: "Balance",
       cell: ({ row }) => {
         const profileAmount = row.getValue("profile_amount") || 0;
         const receivedAmount = row.getValue("profile_received_amt") || 0;
-        const balance = profileAmount - receivedAmount;
+        const discountAmount = row.getValue("profile_discount_amt") || 0;
+        const balance = profileAmount - (receivedAmount + discountAmount);
         return <div>₹{balance}</div>;
       },
     },
