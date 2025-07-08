@@ -430,8 +430,8 @@ const ParticipantSummary = () => {
             size="sm"
           >
             <SquareArrowDown className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Balace Amount</span>
-            <span className="sm:hidden">Balace Amt</span>
+            <span className="hidden sm:inline">Balance Amount</span>
+            <span className="sm:hidden">Balance Amt</span>
           </Button>
           <Button
             onClick={handleDownloadSummaryWithoutAmount}
