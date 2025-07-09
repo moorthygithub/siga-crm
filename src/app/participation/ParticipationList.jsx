@@ -621,10 +621,23 @@ const ParticipationList = () => {
 
   // Define columns for the table
   const columns = [
+    // {
+    //   accessorKey: "id",
+    //   header: "ID",
+    //   cell: ({ row }) => <div>{row.getValue("id")}</div>,
+    // },
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => <div>{row.getValue("id")}</div>,
+      accessorKey: "profile_new_stall_no",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Stall No
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div>{row.getValue("profile_new_stall_no")}</div>,
     },
     {
       accessorKey: "name_of_firm",
