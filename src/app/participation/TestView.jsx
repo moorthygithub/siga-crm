@@ -39,7 +39,7 @@ const TestView = () => {
     pageStyle: `
       @page {
         size: A4;
-        margin: 2mm;
+        margin: 4mm;
       }
       @media print {
         body {
@@ -102,11 +102,14 @@ const TestView = () => {
 
       <div ref={componentRef} className="p-6">
         {/* Header */}
-        <div className="text-center mb-6 pb-4 border-b-2 border-gray-300">
-          <h1 className="text-2xl font-bold">{participantDetails.name_of_firm}</h1>
-          <div className="flex justify-center gap-4 text-sm text-gray-600">
+        <div className="flex flex-row items-center gap-4 justify-between mb-6 pb-4 border-b-2 border-gray-300">
+       <div>
+       <h1 className="text-2xl font-bold">{participantDetails.name_of_firm}</h1>
+       <h4 className="w-96 text-sm">{participantDetails.distributor_agent_address}</h4>
+       </div>
+          <div className="text-xl text-gray-600">
             <span>{participantDetails.brand_name}</span>
-            <span>Stall No: {participantDetails.profile_stall_no || 'N/A'}</span>
+
           </div>
         </div>
 
@@ -117,6 +120,7 @@ const TestView = () => {
             <h2 className="text-xl font-semibold border-b mb-3">Firm Information</h2>
             <DetailRow label="Manufacturer Name" value={participantDetails.manufacturer_name} />
             <DetailRow label="GST Number" value={participantDetails.gst_no} />
+            <DetailRow label="Distributer" value={participantDetails.distributor_agent_name} />
           </div>
 
           {/* Product Categories */}
@@ -141,37 +145,45 @@ const TestView = () => {
           <div>
             <h2 className="text-xl font-semibold border-b mb-3">Representatives</h2>
             <div className="space-y-2">
-              <div className="flex justify-between border-b pb-1">
-                <span>Rep 1: {participantDetails.rep1_name}</span>
-                <span>Mobile: {participantDetails.rep1_mobile}</span>
+              <div className=" border-b pb-1">
+                <span>Rep 1: {participantDetails.rep1_name} {participantDetails.rep1_mobile ?  `- ${participantDetails.rep1_mobile}`:""}</span>
+          
               </div>
               <div className="flex justify-between">
-                <span>Rep 2: {participantDetails.rep2_name}</span>
-                <span>Mobile: {participantDetails.rep2_mobile}</span>
+                <span>{participantDetails.rep2_name ? `Rep 2: ${participantDetails.rep2_name}`:""}   {participantDetails.rep2_mobile ?  `- ${participantDetails.rep2_mobile}`:""}</span>
+               
               </div>
             </div>
           </div>
-
+          </div>
           {/* Fair Participation Details */}
-          <div>
-            <h2 className="text-xl font-semibold border-b mb-3">Fair Participation Details</h2>
-            <DetailRow label="Fair Guide" value={participantDetails.fair_guide} />
-            <DetailRow label="Branding at Venue" value={participantDetails.branding_at_venue} />
-            <DetailRow label="Fashion Show" value={participantDetails.fashion_show} />
-            <DetailRow label="Sponsorship" value={participantDetails.be_an_sponsor} />
+          <div className="mt-6">
+            <h2 className="text-xl   font-semibold border-b mb-3">Fair Advertisement Details</h2>
+      
+            <div className="flex  gap-4 mb-3">
+              <CategoryCheckbox label="Fair Guide" checked={participantDetails.fair_guide === 'Yes'} />
+              <CategoryCheckbox label="Branding at Venue" checked={participantDetails.branding_at_venue === 'Yes'} />
+              <CategoryCheckbox label="Fashion Show" checked={participantDetails.fashion_show === 'Yes'} />
+              <CategoryCheckbox label="Sponsorship" checked={participantDetails.be_an_sponsor === 'Yes'} />
+            </div>
           </div>
 
           {/* Stall and Payment Details */}
-          <div>
+          <div className="mt-6">
             <h2 className="text-xl font-semibold border-b mb-3">Stall and Payment Details</h2>
+            <div className=" grid grid-cols-2 gap-5">
             <DetailRow label="Amount" value={participantDetails.profile_amount} />
-            <DetailRow label="Payment Method" value={participantDetails.profile_payment} />
+
             <DetailRow label="Remarks" value={participantDetails.profile_remark} />
             <DetailRow label="Status" value={participantDetails.profile_status} />
-            <DetailRow label="New Stall Number" value={participantDetails.profile_new_stall_no} />
-            <DetailRow label="Received Amount" value={participantDetails.profile_received_amt} />
+            <DetailRow label="Stall" value={`${participantDetails.profile_new_stall_no} (${participantDetails.profile_stall_size})`}  />
+            </div>
+           
           </div>
-        </div>
+
+
+
+ 
       </div>
     </div>
    </Page>
@@ -189,10 +201,12 @@ const DetailRow = ({ label, value }) => (
   
   const CategoryCheckbox = ({ label, checked }) => (
     <div className="flex items-center gap-2">
-      <div 
-        className={`w-4 h-4 border border-black ${
-          checked ? 'bg-black' : 'bg-white'
-        }`}
+      <input
+      type="checkbox" 
+      checked={checked}
+      readOnly
+      
+      className="w-4 h-4  accent-black cursor-default"
       />
       <span className="text-sm">{label}</span>
     </div>

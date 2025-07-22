@@ -668,7 +668,7 @@ const ParticipationList = () => {
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("profile_status");
-        const id = row.getValue("id");
+        const id = row.original.id
 
         return (
           <div className="flex items-center space-x-2">
