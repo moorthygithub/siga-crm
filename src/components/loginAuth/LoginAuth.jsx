@@ -118,7 +118,7 @@ export default function LoginAuth() {
           const userType = res.data.UserInfo.user.user_type;
           switch(userType) {
             case 1:
-              navigate("/home");
+              navigate("/registrations");
               break;
             case 2:
               navigate("/amount");

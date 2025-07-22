@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Printer } from "lucide-react";
 import BASE_URL from "@/config/BaseUrl";
-import ReactToPrint from "react-to-print";
+import ReactToPrint, { useReactToPrint } from "react-to-print";
 
 const RegistrationView = ({ id }) => {
   const printRef = useRef(null);
@@ -30,6 +30,46 @@ const RegistrationView = ({ id }) => {
     },
     enabled: !!id, // Only run query if registrationId exists
   });
+  // fair_no_of_people
+
+
+
+
+  const handlePrintMultiple = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: registrationDetails ? `Registration-${registrationDetails.fair_person_name}` : 'Registration',
+    pageStyle: `
+      @page {
+        size: auto;
+        margin: 0;
+      }
+      @media print {
+        body {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+          -webkit-print-color-adjust: exact;
+        }
+      }
+    `,
+    onAfterPrint: () => {
+      if (registrationDetails?.fair_no_of_people > 1) {
+        const remainingPrints = registrationDetails.fair_no_of_people - 1;
+        registrationDetails.fair_no_of_people = remainingPrints;
+        if (remainingPrints > 0) {
+          setTimeout(handlePrintMultiple, 150); 
+        }
+      }
+    }
+  });
+
+
+
+
+
+
 
   // If no registration is selected
   if (!id) {
@@ -77,35 +117,24 @@ const RegistrationView = ({ id }) => {
 
   return (
     <Card className="w-full relative">
-      <ReactToPrint
-        trigger={() => (
+     
           <Button
             variant="outline"
             size="icon"
             className="absolute top-4 right-4 z-10"
+            onClick={() => {
+              if (registrationDetails) {
+               
+                registrationDetails.fair_no_of_people = registrationDetails.fair_no_of_people || 1;
+              }
+              handlePrintMultiple();
+            }}
           >
             <Printer className="h-4 w-4" />
           </Button>
-        )}
-        content={() => printRef.current}
-        documentTitle={`Registration-${registrationDetails.fair_person_name}`}
-        pageStyle={`
-          @page {
-            size: auto;
-            margin: 0;
-          }
-          @media print {
-            body {
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
-              margin: 0;
-              -webkit-print-color-adjust: exact;
-            }
-          }
-        `}
-      />
+
+
+     
 
       <CardContent className="p-0">
         {registrationDetails ? (
