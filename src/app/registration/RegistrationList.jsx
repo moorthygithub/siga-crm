@@ -47,7 +47,6 @@ import { useReactToPrint } from "react-to-print";
 const RegistrationList = () => {
   const printRef = useRef(null);
   const [selectedRegistration, setSelectedRegistration] = useState(null);
-  const [remainingPrints, setRemainingPrints] = useState(0);
   const [printingId, setPrintingId] = useState(null); 
 
   const {
@@ -87,7 +86,7 @@ const RegistrationList = () => {
     }
   };
 
-  const handlePrintMultiple = useReactToPrint({
+  const handlePrint = useReactToPrint({
     content: () => printRef.current,
     documentTitle: selectedRegistration
       ? `Registration-${selectedRegistration.fair_person_name}`
@@ -111,47 +110,33 @@ const RegistrationList = () => {
         }
       }
     `,
-    onBeforeGetContent: () => {
-      return Promise.resolve();
-    },
     onAfterPrint: () => {
-      setRemainingPrints(prev => {
-        if (prev > 1) {
-          setTimeout(handlePrintMultiple, 150);
-          return prev - 1;
-        } else {
-          setPrintingId(null); 
-          refetchRegistrations();
-          return 0;
-        }
-      });
+      setPrintingId(null);
+      refetchRegistrations();
     },
     onPrintError: (error) => {
       console.error("Print error:", error);
       setPrintingId(null);
-      setRemainingPrints(0);
     }
   });
   
-  const handlePrint = async (registration) => {
+  const handlePrintClick = async (registration) => {
     try {
       setPrintingId(registration.id); 
       const data = await handleFetchRegistration(registration.id);
       setSelectedRegistration(data);
-      setRemainingPrints(data.fair_no_of_people);
-      setTimeout(handlePrintMultiple, 100);
+      setTimeout(handlePrint, 100);
     } catch (error) {
       console.error("Error preparing print:", error);
       setPrintingId(null); 
-      setRemainingPrints(0);
     }
   };
 
   const columns = [
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => <div>{row.getValue("id")}</div>,
+      accessorKey: "fair_id",
+      header: "Fair Id",
+      cell: ({ row }) => <div>{row.getValue("fair_id")}</div>,
     },
     {
       accessorKey: "fair_firm_name",
@@ -175,11 +160,6 @@ const RegistrationList = () => {
       accessorKey: "fair_person_mobile",
       header: "Mobile",
       cell: ({ row }) => <div>{row.getValue("fair_person_mobile")}</div>,
-    },
-    {
-      accessorKey: "fair_no_of_people",
-      header: "No of People",
-      cell: ({ row }) => <div>{row.getValue("fair_no_of_people")}</div>,
     },
     {
       accessorKey: "fair_print_status",
@@ -206,7 +186,7 @@ const RegistrationList = () => {
               variant="outline"
               size="icon"
               className="top-4 right-4 z-10"
-              onClick={() => handlePrint(registration)}
+              onClick={() => handlePrintClick(registration)}
               disabled={printingId !== null && !isCurrentPrinting} 
             >
               {isCurrentPrinting ? (
@@ -397,13 +377,25 @@ const RegistrationList = () => {
           </div>
         </div>
 
-        <div className="hidden">
+        <div className="hidden relative">
           {selectedRegistration && (
             <div
               ref={printRef}
-              className="w-full print:h-48 print:relative max-w-sm mx-auto shadow-lg print:border-none bg-white rounded-lg overflow-hidden print:shadow-none  print:rounded-none"
+              className="w-full print:h-96 absolute top-36  mx-auto  max-w-sm left-1/2 -translate-x-1/2 shadow-lg print:border-none bg-white rounded-lg overflow-hidden print:shadow-none  print:rounded-none"
             >
-              <div className="p-12 text-center print:absolute print:bottom-14 print:left-1/2 print:transform print:-translate-x-1/2">
+               <div
+     className="absolute top-5 w-28 h-28 border-none left-1/2 -translate-x-1/2"
+  >
+    {selectedRegistration.fair_person_image && (
+      <img
+      src={`http://southindiagarmentsassociation.com/public/register_images/${selectedRegistration.fair_person_image}`}
+      alt="Registrant"
+      className="w-full h-full object-cover rounded-none"
+    />
+    )}
+    
+  </div>
+              <div className="px-12  -translate-y-16 text-center print:absolute border-none print:bottom-28 print:left-1/2 print:transform print:-translate-x-1/2">
                 <div className="mb-2">
                   <h2 className="text-lg print:w-80 font-bold text-gray-800">
                     {selectedRegistration.fair_firm_name || "N/A"}
