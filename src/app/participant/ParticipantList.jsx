@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Page from "../dashboard/page";
 import BASE_URL from "@/config/BaseUrl";
 import { useQuery } from "@tanstack/react-query";
@@ -17,6 +17,7 @@ import {
   MoreHorizontal,
   Eye,
   Loader2,
+  Printer,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -41,15 +42,19 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ParticipantView from "./ParticipantView";
+import { useReactToPrint } from "react-to-print";
 
 const ParticipantList = () => {
+    const printRef = useRef(null);
+    const [selectedRegistration, setSelectedRegistration] = useState(null);
+    const [printingId, setPrintingId] = useState(null); 
   const {
-    data: registrations,
+    data: idcards,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["registrations"],
+    queryKey: ["idcards"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await axios.get(`${BASE_URL}/api/panel-fetch-idcard`, {
@@ -65,7 +70,39 @@ const ParticipantList = () => {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [selectedId, setSelectedId] = useState(null);
-
+const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: selectedRegistration
+      ? `IdCard-${selectedRegistration.id_card_brand_name}`
+      : "IdCard",
+    pageStyle: `
+      @page {
+        size: auto;
+        margin: 0;
+      }
+        
+      @media print {
+        body {
+          margin: 0;
+          -webkit-print-color-adjust: exact;
+        }
+        body > div {
+          position: absolute;
+          top: 210px;
+          left: 0;
+          width: 100%;
+        }
+      }
+    `,
+    onAfterPrint: () => {
+      setPrintingId(null);
+      refetchRegistrations();
+    },
+    onPrintError: (error) => {
+      console.error("Print error:", error);
+      setPrintingId(null);
+    }
+  });
   // Define columns for the table
   const columns = [
     {
@@ -96,6 +133,36 @@ const ParticipantList = () => {
       header: "Rep. Name",
       cell: ({ row }) => <div>{row.getValue("idcardsub_rep_name")}</div>,
     },
+    {
+      id: "actions",
+      header: "Action",
+      cell: ({ row }) => {
+        const registration = row.original;
+        const isCurrentPrinting = printingId === registration.id;
+    
+        return (
+          <div className="flex flex-row">
+            <Button
+              variant="outline"
+              size="icon"
+              className="top-4 right-4 z-10"
+              onClick={() => {
+                setSelectedRegistration(registration);
+                setPrintingId(registration.id);
+                setTimeout(() => handlePrint(), 0);
+              }}
+              disabled={printingId !== null && !isCurrentPrinting} 
+            >
+              {isCurrentPrinting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Printer className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        );
+      },
+    }
     // {
     //   accessorKey: "idcardsub_rep_mobile",
     //   header: "Mobile",
@@ -107,7 +174,7 @@ const ParticipantList = () => {
 
   // Create the table instance
   const table = useReactTable({
-    data: registrations || [],
+    data: idcards || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -166,7 +233,7 @@ const ParticipantList = () => {
   return (
     <Page>
       <div className="flex w-full p-4 gap-2">
-        <div className="w-[70%]">
+        <div className="w-[100%]">
           <div className="flex text-left text-xl text-gray-800 font-[400]">
             Id Card List
           </div>
@@ -287,8 +354,38 @@ const ParticipantList = () => {
             </div>
           </div>
         </div>
-        <div className="w-[30%] p-4 m-auto border-l">
-          <ParticipantView id={selectedId} />
+        <div className="hidden relative">
+          {selectedRegistration && (
+            <div
+              ref={printRef}
+              className="w-full print:h-96 absolute top-36  mx-auto  max-w-sm left-1/2 -translate-x-1/2 shadow-lg print:border-none bg-white rounded-lg overflow-hidden print:shadow-none  print:rounded-none"
+            >
+               <div
+     className="absolute top-5 w-28 h-28 border-none left-1/2 -translate-x-1/2"
+  >
+    {selectedRegistration.idcardsub_rep_image && (
+      <img
+      src={`http://southindiagarmentsassociation.com/public/idcard_images/${selectedRegistration.idcardsub_rep_image}`}
+      alt="Registrant"
+      className="w-full h-full object-cover rounded-none"
+    />
+    )}
+    
+  </div>
+              <div className="px-12  -translate-y-16 text-center print:absolute border-none print:bottom-28 print:left-1/2 print:transform print:-translate-x-1/2">
+                <div className="mb-2">
+                  <h2 className="text-lg print:w-80 font-bold text-gray-800">
+                    {selectedRegistration.id_card_brand_name || "N/A"}
+                  </h2>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium uppercase text-gray-700">
+                    {selectedRegistration.idcardsub_rep_name || "N/A"}
+                  </h3>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Page>
