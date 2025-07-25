@@ -46,7 +46,9 @@ import { useReactToPrint } from "react-to-print";
 const OtherList = () => {
   const printRef = useRef(null);
   const [selectedRegistration, setSelectedRegistration] = useState(null);
-  const [printingId, setPrintingId] = useState(null); 
+  const [printingId, setPrintingId] = useState(null);
+  const [isBulkPrinting, setIsBulkPrinting] = useState(false);
+
 
   const {
     data: others,
@@ -57,9 +59,12 @@ const OtherList = () => {
     queryKey: ["others"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/panel-fetch-register-other`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-register-other`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       return response.data.registerData;
     },
   });
@@ -88,8 +93,8 @@ const OtherList = () => {
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
     documentTitle: selectedRegistration
-      ? `Registration-${selectedRegistration.fair_person_name}`
-      : "Registration",
+      ? `Other-${selectedRegistration.fair_person_name}`
+      : "Other",
     pageStyle: `
       @page {
         size: auto;
@@ -116,18 +121,51 @@ const OtherList = () => {
     onPrintError: (error) => {
       console.error("Print error:", error);
       setPrintingId(null);
-    }
+    },
   });
-  
+
+  const printAllUnprinted = async () => {
+    if (!others || isBulkPrinting) return;
+
+    const unprintedRows = others.filter(
+      (row) => !row.fair_print_status || row.fair_print_status !== "Printed"
+    );
+
+    for (const row of unprintedRows) {
+      try {
+        setPrintingId(row.id);
+        const data = await handleFetchRegistration(row.id);
+        setSelectedRegistration(data);
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        await new Promise((resolve) => {
+          setTimeout(() => {
+            handlePrint();
+
+            setTimeout(resolve, 1000);
+          }, 100);
+        });
+      } catch (error) {
+        console.error(`Error processing row ${row.id}:`, error);
+      } finally {
+        setPrintingId(null);
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
+    setIsBulkPrinting(false);
+  };
+
   const handlePrintClick = async (registration) => {
     try {
-      setPrintingId(registration.id); 
+      setPrintingId(registration.id);
       const data = await handleFetchRegistration(registration.id);
       setSelectedRegistration(data);
       setTimeout(handlePrint, 100);
     } catch (error) {
       console.error("Error preparing print:", error);
-      setPrintingId(null); 
+      setPrintingId(null);
     }
   };
 
@@ -186,7 +224,7 @@ const OtherList = () => {
               size="icon"
               className="top-4 right-4 z-10"
               onClick={() => handlePrintClick(registration)}
-              disabled={printingId !== null && !isCurrentPrinting} 
+              disabled={printingId !== null && !isCurrentPrinting}
             >
               {isCurrentPrinting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -260,8 +298,24 @@ const OtherList = () => {
     <Page>
       <div className="flex w-full p-4 gap-2">
         <div className="w-[100%]">
-          <div className="flex text-left text-xl text-gray-800 font-[400]">
-            Others List
+          <div className="flex justify-between items-center">
+            <div className="flex text-left text-xl text-gray-800 font-[400]">
+              Others List
+            </div>
+            <Button
+              variant="outline"
+              onClick={printAllUnprinted}
+              disabled={isBulkPrinting}
+            >
+             {isBulkPrinting ? (
+                 <>
+                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                   Printing All...
+                 </>
+               ) : (
+                 "Print All Unprinted"
+               )}
+            </Button>
           </div>
           <div className="flex items-center py-4">
             <Input
@@ -352,7 +406,7 @@ const OtherList = () => {
           </div>
           <div className="flex items-center justify-end space-x-2 py-4">
             <div className="flex-1 text-sm text-muted-foreground">
-              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+
               {table.getFilteredRowModel().rows.length} row(s).
             </div>
             <div className="space-x-2">
@@ -380,20 +434,18 @@ const OtherList = () => {
           {selectedRegistration && (
             <div
               ref={printRef}
+              key={selectedRegistration.id}
               className="w-full print:h-96 absolute top-36  mx-auto  max-w-sm left-1/2 -translate-x-1/2 shadow-lg print:border-none bg-white rounded-lg overflow-hidden print:shadow-none  print:rounded-none"
             >
-               <div
-     className="absolute top-5 w-28 h-28 border-none left-1/2 -translate-x-1/2"
-  >
-    {selectedRegistration.fair_person_image && (
-      <img
-      src={`http://southindiagarmentsassociation.com/public/other_images/${selectedRegistration.fair_person_image}`}
-      alt="Registrant"
-      className="w-full h-full object-cover rounded-none"
-    />
-    )}
-    
-  </div>
+              <div className="absolute top-5 w-28 h-28 border-none left-1/2 -translate-x-1/2">
+                {selectedRegistration.fair_person_image && (
+                  <img
+                    src={`http://southindiagarmentsassociation.com/public/other_images/${selectedRegistration.fair_person_image}`}
+                    alt="Registrant"
+                    className="w-full h-full object-cover rounded-none"
+                  />
+                )}
+              </div>
               <div className="px-12  -translate-y-16 text-center print:absolute border-none print:bottom-28 print:left-1/2 print:transform print:-translate-x-1/2">
                 <div className="mb-2">
                   <h2 className="text-lg print:w-80 font-bold text-gray-800">
@@ -414,5 +466,4 @@ const OtherList = () => {
   );
 };
 
-
-export default OtherList
+export default OtherList;

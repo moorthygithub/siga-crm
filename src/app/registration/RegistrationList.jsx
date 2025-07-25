@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -41,14 +40,13 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from "@/config/BaseUrl";
-import RegistrationView from "./RegistrationView";
 import { useReactToPrint } from "react-to-print";
 
 const RegistrationList = () => {
   const printRef = useRef(null);
   const [selectedRegistration, setSelectedRegistration] = useState(null);
   const [printingId, setPrintingId] = useState(null); 
-
+ const [isBulkPrinting, setIsBulkPrinting] = useState(false);
   const {
     data: registrations,
     isLoading,
@@ -119,7 +117,39 @@ const RegistrationList = () => {
       setPrintingId(null);
     }
   });
-  
+  const printAllUnprinted = async () => {
+    if (!registrations || isBulkPrinting) return;
+
+    const unprintedRows = registrations.filter(
+      (row) => !row.fair_print_status || row.fair_print_status !== "Printed"
+    );
+
+    for (const row of unprintedRows) {
+      try {
+        setPrintingId(row.id);
+        const data = await handleFetchRegistration(row.id);
+        setSelectedRegistration(data);
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        await new Promise((resolve) => {
+          setTimeout(() => {
+            handlePrint();
+
+            setTimeout(resolve, 1000);
+          }, 100);
+        });
+      } catch (error) {
+        console.error(`Error processing row ${row.id}:`, error);
+      } finally {
+        setPrintingId(null);
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
+    setIsBulkPrinting(false);
+  };
+
   const handlePrintClick = async (registration) => {
     try {
       setPrintingId(registration.id); 
@@ -261,9 +291,26 @@ const RegistrationList = () => {
     <Page>
       <div className="flex w-full p-4 gap-2">
         <div className="w-[100%]">
-          <div className="flex text-left text-xl text-gray-800 font-[400]">
-            Registrations List
-          </div>
+          
+          <div className="flex justify-between items-center">
+                      <div className="flex text-left text-xl text-gray-800 font-[400]">
+                      Registrations List
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={printAllUnprinted}
+                        disabled={isBulkPrinting}
+                      >
+                       {isBulkPrinting ? (
+                           <>
+                             <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                             Printing All...
+                           </>
+                         ) : (
+                           "Print All Unprinted"
+                         )}
+                      </Button>
+                    </div>
           <div className="flex items-center py-4">
             <Input
               placeholder="Search..."
@@ -381,6 +428,7 @@ const RegistrationList = () => {
           {selectedRegistration && (
             <div
               ref={printRef}
+              key={selectedRegistration.id}
               className="w-full print:h-96 absolute top-36  mx-auto  max-w-sm left-1/2 -translate-x-1/2 shadow-lg print:border-none bg-white rounded-lg overflow-hidden print:shadow-none  print:rounded-none"
             >
                <div
