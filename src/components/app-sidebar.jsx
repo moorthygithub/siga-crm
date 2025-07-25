@@ -121,6 +121,11 @@ export function AppSidebar({ ...props }) {
         icon: PieChart,
       },
       {
+        name: "Others",
+        url: "/others",
+        icon: PieChart,
+      },
+      {
         name: "Id Card",
         url: "/participant",
         icon: Map,

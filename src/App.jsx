@@ -32,6 +32,7 @@ import CreateButtonRole from "./app/userManagement/CreateButtonRole";
 import MsmeList from "./app/msme/MsmeList";
 import MsmeEdit from "./app/msme/MsmeEdit";
 import MsmeView from "./app/msme/MsmeView";
+import OtherList from "./app/others/OtherList";
 
 
 
@@ -52,6 +53,8 @@ function App() {
         <Route path="/home" element={<Home />} />
         {/* Registration  */}
         <Route path="/registrations" element={<RegistrationList />} />
+        {/* Others  */}
+        <Route path="/others" element={<OtherList />} />
         {/* id card  */}
         <Route path="/participant" element={<ParticipantList />} />
         {/* msme */}
