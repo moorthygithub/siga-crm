@@ -500,9 +500,9 @@ const ParticipantList = () => {
             <div
               ref={printRef}
               key={selectedRegistration.id}
-              className="w-full print:h-96 absolute top-36  mx-auto  max-w-sm left-1/2 -translate-x-1/2 shadow-lg print:border-none bg-white rounded-lg overflow-hidden print:shadow-none  print:rounded-none"
+              className="w-full print:h-96 absolute  top-[6.5rem]  mx-auto  max-w-sm left-1/2 -translate-x-1/2 shadow-lg print:border-none bg-white rounded-lg overflow-hidden print:shadow-none  print:rounded-none"
             >
-              <div className="absolute top-5 w-28 h-28 border-none left-1/2 -translate-x-1/2">
+              <div className="absolute top-5 w-28 h-28 border-2 left-1/2 -translate-x-1/2">
                 {selectedRegistration.idcardsub_rep_image && (
                   <img
                     src={`http://southindiagarmentsassociation.com/public/idcard_images/${selectedRegistration.idcardsub_rep_image}`}
@@ -514,12 +514,12 @@ const ParticipantList = () => {
               <div className="px-12  -translate-y-16 text-center print:absolute border-none print:bottom-28 print:left-1/2 print:transform print:-translate-x-1/2">
                 <div className="mb-2">
                   <h2 className="text-lg print:w-80 font-bold text-gray-800">
-                    {selectedRegistration.id_card_brand_name || "N/A"}
+                    {selectedRegistration.id_card_brand_name || ""}
                   </h2>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium uppercase text-gray-700">
-                    {selectedRegistration.idcardsub_rep_name || "N/A"}
+                    {selectedRegistration.idcardsub_rep_name || ""}
                   </h3>
                 </div>
               </div>
