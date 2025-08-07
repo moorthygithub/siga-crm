@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Page from "../dashboard/page";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -17,6 +17,7 @@ import {
   Eye,
   Loader2,
   RefreshCcwDot,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,13 +49,16 @@ import { DirectryView } from "@/components/base/ButtonComponents";
 const DirectoryList = () => {
   const queryClient = useQueryClient();
   const {toast} = useToast()
+  const usertype = Number(localStorage.getItem("userType")); 
+  const isRestrictedUserDelete = [1, 2, 4].includes(usertype);
+    const [highlightedRowId, setHighlightedRowId] = useState(null);
   const {
-    data: registrations,
+    data: directoryData,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["registrations"],
+    queryKey: ["directoryData"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await axios.get(
@@ -66,6 +70,27 @@ const DirectoryList = () => {
       return response.data.directory;
     },
   });
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${BASE_URL}/api/panel-delete-directory/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["directoryData"]); 
+    },
+    onError: (error) => {
+      console.error("Error deleting item:", error);
+    },
+  });
+  const handleDelete = (e,id)=>{
+    e.preventDefault()
+    // https://agsrebuild.store/public/api/panel-delete-directory/${id}
+    if (window.confirm("Are you sure you want to delete this item?")) {
+      deleteMutation.mutate(id);
+    }
+  }
 
   const handleCompanyStatusLabel = (status) => {
     switch (status) {
@@ -97,7 +122,7 @@ const DirectoryList = () => {
     },
     onSuccess: (data,variables) => {
       // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ["registrations"] });
+      queryClient.invalidateQueries({ queryKey: ["directoryData"] });
       toast({
         title: "Status Updated",
         description: `Directory status changed to ${handleCompanyStatusLabel(variables.status) }`,
@@ -121,7 +146,26 @@ const DirectoryList = () => {
   const [rowSelection, setRowSelection] = useState({});
   const navigate = useNavigate();
 
-  
+  useEffect(() => {
+    const lastEditedId = localStorage.getItem("lastEditedDirectoryId");
+
+    if (lastEditedId) {
+      setHighlightedRowId(parseInt(lastEditedId));
+
+      localStorage.removeItem("lastEditedDirectoryId");
+
+      setTimeout(() => {
+        const element = document.getElementById(`directory-row-${lastEditedId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 500);
+
+      setTimeout(() => {
+        setHighlightedRowId(null);
+      }, 3000);
+    }
+  }, []);
 
   // Status Cycle function
   const handleStatusToggle = (id, currentStatus) => {
@@ -136,9 +180,9 @@ const DirectoryList = () => {
   // Define columns for the table
   const columns = [
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => <div>{row.getValue("id")}</div>,
+      accessorKey: "index",
+      header: "Sl.No",
+      cell: ({ row }) => <div>{row.index+1}</div>,
     },
     {
       accessorKey: "name_of_firm",
@@ -178,7 +222,7 @@ const DirectoryList = () => {
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("status");
-        const id = row.getValue("id");
+        const id = row.original.id
         const label = handleCompanyStatusLabel(status);
         return (
           <div className="flex items-center space-x-2">
@@ -230,10 +274,19 @@ const DirectoryList = () => {
           </Button> */}
           <DirectryView
           onClick={() => {
-            
+            localStorage.setItem("lastEditedDirectoryId", registration);
             navigate(`/directory-view/${registration}`);
           }}
           />
+           {!isRestrictedUserDelete && (
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="icon"
+                                                      onClick={(e)=>handleDelete(e,registration)}
+                                                    >
+                                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                                    </Button>
+                                                       )}
           </div>
         );
       },
@@ -242,7 +295,7 @@ const DirectoryList = () => {
 
   // Create the table instance
   const table = useReactTable({
-    data: registrations || [],
+    data: directoryData || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -260,7 +313,7 @@ const DirectoryList = () => {
     },
     initialState: {
       pagination: {
-        pageSize: 7,
+        pageSize: 30000,
       },
     },
   });
@@ -306,16 +359,14 @@ const DirectoryList = () => {
         </div>
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
-          <Input
-            placeholder="Filter firm names..."
-            value={table.getColumn("name_of_firm")?.getFilterValue() ?? ""}
-            onChange={(event) =>
-              table
-                .getColumn("name_of_firm")
-                ?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
+         <Input
+                   placeholder="Filter directory..."
+                   value={table.getState().globalFilter || ""}
+                   onChange={(event) => {
+                     table.setGlobalFilter(event.target.value);
+                   }}
+                   className="max-w-sm"
+                 />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
@@ -344,62 +395,69 @@ const DirectoryList = () => {
           </DropdownMenu>
         </div>
         {/* table  */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
+          <div className="rounded-md border">
+                  <div className="bg-white overflow-auto h-[calc(30rem-3rem)]">
+                    <Table>
+                      <TableHeader>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => {
+                              return (
+                                <TableHead key={header.id}>
+                                  {header.isPlaceholder
+                                    ? null
+                                    : flexRender(
+                                        header.column.columnDef.header,
+                                        header.getContext()
+                                      )}
+                                </TableHead>
+                              );
+                            })}
+                          </TableRow>
+                        ))}
+                      </TableHeader>
+                      <TableBody>
+                        {table.getRowModel().rows?.length ? (
+                          table.getRowModel().rows.map((row) => (
+                            <TableRow
+                              key={row.id}
+                              data-state={row.getIsSelected() && "selected"}
+                              id={`directory-row-${row.original.id}`}
+                              className={
+                                highlightedRowId === row.original.id
+                                  ? "bg-yellow-100 transition-colors duration-1000"
+                                  : "cursor-pointer hover:bg-gray-100"
+                              }
+                            >
+                              {row.getVisibleCells().map((cell) => (
+                                <TableCell key={cell.id}>
+                                  {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext()
+                                  )}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              colSpan={columns.length}
+                              className="h-24 text-center"
+                            >
+                              No results.
+                            </TableCell>
+                          </TableRow>
                         )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
         {/* row slection and pagintaion button  */}
         <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
+        <div className="flex-1 text-sm text-muted-foreground">
+                   Total {table.getFilteredRowModel().rows.length} directory(s).
+                 </div>
           <div className="space-x-2">
             <Button
               variant="outline"

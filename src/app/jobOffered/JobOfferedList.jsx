@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Page from '../dashboard/page'
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
   flexRender,
@@ -17,6 +17,7 @@ import {
   Eye,
   Loader2,
   Edit,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -45,13 +46,18 @@ import { useNavigate } from 'react-router-dom';
 import { JobOfferedEdit, JobOfferedView } from '@/components/base/ButtonComponents';
 
 const JobOfferedList = () => {
+   const queryClient = useQueryClient();
+    const usertype = Number(localStorage.getItem("userType")); 
+  const isRestrictedUserDelete = [1, 2, 4].includes(usertype);
+  const [highlightedRowId, setHighlightedRowId] = useState(null);
+
   const {
-    data: registrations,
+    data: joboffered,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["registrations"],
+    queryKey: ["joboffered"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await axios.get(`${BASE_URL}/api/panel-fetch-joboffered`, {
@@ -68,6 +74,49 @@ const JobOfferedList = () => {
   const [rowSelection, setRowSelection] = useState({});
   const navigate = useNavigate()
 
+
+    useEffect(() => {
+      const lastEditedId = localStorage.getItem("lastEditedJobOfferedId");
+  
+      if (lastEditedId) {
+        setHighlightedRowId(parseInt(lastEditedId));
+  
+        localStorage.removeItem("lastEditedJobOfferedId");
+  
+        setTimeout(() => {
+          const element = document.getElementById(`jobOffered-row-${lastEditedId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 500);
+  
+        setTimeout(() => {
+          setHighlightedRowId(null);
+        }, 3000);
+      }
+    }, []);
+    const deleteMutation = useMutation({
+      mutationFn: async (id) => {
+        const token = localStorage.getItem("token");
+        await axios.delete(`${BASE_URL}/api/panel-delete-joboffered/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries(["joboffered"]); 
+      },
+      onError: (error) => {
+        console.error("Error deleting item:", error);
+      },
+    });
+    const handleDelete = (e,id)=>{
+      e.preventDefault()
+      // https://agsrebuild.store/public/api/panel-delete-joboffered/${id}
+      if (window.confirm("Are you sure you want to delete this item?")) {
+        deleteMutation.mutate(id);
+      }
+    }
+  
   const handleCompanyStatusLabel = (status) => {
     switch (status) {
       case '0':
@@ -85,9 +134,9 @@ const JobOfferedList = () => {
   const columns = [
     
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => <div>{row.getValue("id")}</div>,
+      accessorKey: "index",
+      header: "Sl.No",
+      cell: ({ row }) => <div>{row.index+1}</div>,
     },
     {
       accessorKey: "company_name",
@@ -162,7 +211,12 @@ const JobOfferedList = () => {
             <Edit className="h-4 w-4" />
           </Button> */}
           <JobOfferedEdit
-           onClick={()=>navigate(`/job-offered-edit/${registration}`)}
+           onClick={()=>
+           {
+            localStorage.setItem("lastEditedJobOfferedId", registration);
+            navigate(`/job-offered-edit/${registration}`)}
+           }
+            
           />
           {/* <Button
             variant="ghost"
@@ -174,8 +228,23 @@ const JobOfferedList = () => {
           </Button> */}
 
           <JobOfferedView
-           onClick={()=>navigate(`/job-offered-view/${registration}`)}
+           onClick={()=>
+           {
+
+            localStorage.setItem("lastEditedJobOfferedId", registration);
+            navigate(`/job-offered-view/${registration}`)}
+           }
+     
           />
+           {!isRestrictedUserDelete && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e)=>handleDelete(e,registration)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                                   )}
           </div>
         );
       },
@@ -184,7 +253,7 @@ const JobOfferedList = () => {
 
   // Create the table instance
   const table = useReactTable({
-    data: registrations || [],
+    data: joboffered || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -202,7 +271,7 @@ const JobOfferedList = () => {
     },
     initialState: {
       pagination: {
-        pageSize: 7,
+        pageSize: 30000,
       },
     },
   });
@@ -247,16 +316,14 @@ const JobOfferedList = () => {
         <div className="flex text-left text-xl text-gray-800 font-[400]" >Job Offered List</div>
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
-          <Input
-            placeholder="Filter Company names..."
-            value={table.getColumn("company_name")?.getFilterValue() ?? ""}
-            onChange={(event) =>
-              table
-                .getColumn("company_name")
-                ?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
+         <Input
+                     placeholder="Filter Job Offered..."
+                     value={table.getState().globalFilter || ""}
+                     onChange={(event) => {
+                       table.setGlobalFilter(event.target.value);
+                     }}
+                     className="max-w-sm"
+                   />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
@@ -286,61 +353,69 @@ const JobOfferedList = () => {
         </div>
         {/* table  */}
         <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                <div className="bg-white overflow-auto h-[calc(30rem-3rem)]">
+                  <Table>
+                    <TableHeader>
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => {
+                            return (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                              </TableHead>
+                            );
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableHeader>
+                    <TableBody>
+                      {table.getRowModel().rows?.length ? (
+                        table.getRowModel().rows.map((row) => (
+                          <TableRow
+                            key={row.id}
+                            data-state={row.getIsSelected() && "selected"}
+                            id={`jobOffered-row-${row.original.id}`}
+                            className={
+                              highlightedRowId === row.original.id
+                                ? "bg-yellow-100 transition-colors duration-1000"
+                                : "cursor-pointer hover:bg-gray-100"
+                            }
+                          >
+                            {row.getVisibleCells().map((cell) => (
+                              <TableCell key={cell.id}>
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={columns.length}
+                            className="h-24 text-center"
+                          >
+                            No results.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+              
         {/* row slection and pagintaion button  */}
         <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
+         <div className="flex-1 text-sm text-muted-foreground">
+                    Total {table.getFilteredRowModel().rows.length} Job Offered(s).
+                  </div>
           <div className="space-x-2">
             <Button
               variant="outline"

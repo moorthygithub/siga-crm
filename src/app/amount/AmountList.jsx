@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Page from '../dashboard/page'
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
   flexRender,
@@ -17,6 +17,7 @@ import {
   Eye,
   Loader2,
   Edit,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -45,13 +46,17 @@ import { useNavigate } from 'react-router-dom';
 import { PaymentEdit, PaymentView } from '@/components/base/ButtonComponents';
 
 const AmountList = () => {
+   const queryClient = useQueryClient();
+  const usertype = Number(localStorage.getItem("userType")); 
+  const [highlightedRowId, setHighlightedRowId] = useState(null);
+  const isRestrictedUserDelete = [1, 2, 4].includes(usertype);
   const {
-    data: registrations,
+    data: paymentMediation,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["registrations"],
+    queryKey: ["paymentMediation"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await axios.get(`${BASE_URL}/api/panel-fetch-duesreconcil`, {
@@ -66,7 +71,54 @@ const AmountList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
+  
+  useEffect(() => {
+    const lastEditedId = localStorage.getItem("lastEditedAmountId");
+
+    if (lastEditedId) {
+      setHighlightedRowId(parseInt(lastEditedId));
+
+      localStorage.removeItem("lastEditedAmountId");
+
+      setTimeout(() => {
+        const element = document.getElementById(`amount-row-${lastEditedId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 500);
+
+      setTimeout(() => {
+        setHighlightedRowId(null);
+      }, 3000);
+    }
+  }, []);
+
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${BASE_URL}/api/panel-delete-duesreconcil/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["paymentMediation"]); 
+    },
+    onError: (error) => {
+      console.error("Error deleting item:", error);
+    },
+  });
+  const handleDelete = (e,id)=>{
+    e.preventDefault()
+    // https://agsrebuild.store/public/api/panel-delete-duesreconcil/${id}
+    if (window.confirm("Are you sure you want to delete this item?")) {
+      deleteMutation.mutate(id);
+    }
+  }
+
+
   const handleCompanyStatusLabel = (status) => {
     switch (status) {
       case '0':
@@ -82,11 +134,10 @@ const AmountList = () => {
   
   // Define columns for the table
   const columns = [
-   
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => <div>{row.getValue("id")}</div>,
+      accessorKey: "index",
+      header: "Sl.No",
+      cell: ({ row }) => <div>{row.index+1}</div>,
     },
     {
       accessorKey: "company_firm",
@@ -99,12 +150,20 @@ const AmountList = () => {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("company_firm")}</div>,
+      cell: ({ row }) => {
+        return (
+          <div className='w-36 break-words'>{row.getValue("company_firm")}</div>
+        )
+      },
     },
     {
       accessorKey: "address",
       header: "Address",
-      cell: ({ row }) => <div>{row.getValue("address")}</div>,
+      cell: ({ row }) => {
+        return (
+          <div className="w-36 break-words">{row.getValue("address")}</div>
+        )
+      },
     },
     {
       accessorKey: "contact_mobile",
@@ -135,7 +194,7 @@ const AmountList = () => {
                 : "bg-gray-100 text-gray-800"
             }`}
           >
-            {label }
+            {label}
           </span>
         );
       },
@@ -148,28 +207,27 @@ const AmountList = () => {
 
         return (
           <div className='flex flex-row'>
-          {/* <Button
-            variant="ghost"
-            size="icon"
-            onClick = {()=>navigate(`/amount-edit/${registration}`)}
-          >
-            <Edit className="h-4 w-4" />
-          </Button> */}
-          <PaymentEdit
-          onClick = {()=>navigate(`/amount-edit/${registration}`)}
-          
-          />
-          {/* <Button
-            variant="ghost"
-            size="icon"
-           
-            onClick = {()=>navigate(`/amount-view/${registration}`)}
-          >
-            <Eye className="h-4 w-4" />
-          </Button> */}
-          <PaymentView
-          onClick = {()=>navigate(`/amount-view/${registration}`)}
-          />
+            <PaymentEdit
+              onClick={() => {
+                localStorage.setItem("lastEditedAmountId", registration);
+                navigate(`/amount-edit/${registration}`);
+              }}
+            />
+            <PaymentView
+              onClick={() => {
+                localStorage.setItem("lastEditedAmountId", registration);
+                navigate(`/amount-view/${registration}`);
+              }}
+            />
+               {!isRestrictedUserDelete && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e)=>handleDelete(e,registration)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                         )}
           </div>
         );
       },
@@ -178,7 +236,7 @@ const AmountList = () => {
 
   // Create the table instance
   const table = useReactTable({
-    data: registrations || [],
+    data: paymentMediation || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -196,7 +254,7 @@ const AmountList = () => {
     },
     initialState: {
       pagination: {
-        pageSize: 7,
+        pageSize: 30000, // Large page size to show all rows
       },
     },
   });
@@ -236,19 +294,18 @@ const AmountList = () => {
   }
 
   return (
-   <Page>
-     <div className="w-full p-4">
-        <div className="flex text-left text-xl text-gray-800 font-[400]" >Payment Mediation List</div>
+    <Page>
+      <div className="w-full p-4">
+        <div className="flex text-left text-xl text-gray-800 font-[400] mb-2">Payment Mediation List</div>
+        
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
           <Input
-            placeholder="Filter Company names..."
-            value={table.getColumn("company_firm")?.getFilterValue() ?? ""}
-            onChange={(event) =>
-              table
-                .getColumn("company_firm")
-                ?.setFilterValue(event.target.value)
-            }
+            placeholder="Filter payment..."
+            value={table.getState().globalFilter || ""}
+            onChange={(event) => {
+              table.setGlobalFilter(event.target.value);
+            }}
             className="max-w-sm"
           />
           <DropdownMenu>
@@ -278,85 +335,76 @@ const AmountList = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        
         {/* table  */}
         <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+          <div className="bg-white overflow-auto h-[calc(30rem-3rem)]">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      id={`amount-row-${row.original.id}`}
+                      className={
+                        highlightedRowId === row.original.id
+                          ? "bg-yellow-100 transition-colors duration-1000"
+                          : "cursor-pointer hover:bg-gray-100"
+                      }
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
-        {/* row slection and pagintaion button  */}
+        
+        {/* row selection info */}
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
-          <div className="space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </Button>
+            Total {table.getFilteredRowModel().rows.length} payment(s).
           </div>
         </div>
       </div>
-   </Page>
+    </Page>
   )
 }
 
-export default AmountList
+export default AmountList;
