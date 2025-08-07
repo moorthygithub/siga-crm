@@ -52,12 +52,12 @@ const LatestNewsList = () => {
   const usertype = Number(localStorage.getItem("userType")); 
   const isRestrictedUserDelete = [1, 2, 4].includes(usertype);
   const {
-    data: registrations,
+    data: latestNewsData,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["registrations"],
+    queryKey: ["latestNewsData"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await axios.get(
@@ -85,7 +85,7 @@ const LatestNewsList = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["registrations"]);
+      queryClient.invalidateQueries(["latestNewsData"]);
       
     },
     onError: (error) => {
@@ -155,7 +155,7 @@ const LatestNewsList = () => {
               handleDelete(e,registration)
             }}
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-4 w-4 text-red-500" />
           </Button>
              )}
           </div>
@@ -166,7 +166,7 @@ const LatestNewsList = () => {
 
   // Create the table instance
   const table = useReactTable({
-    data: registrations || [],
+    data: latestNewsData || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

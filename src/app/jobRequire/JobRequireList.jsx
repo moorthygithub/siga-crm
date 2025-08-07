@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Page from "../dashboard/page";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
   flexRender,
@@ -17,6 +17,7 @@ import {
   Eye,
   Loader2,
   Edit,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -45,13 +46,17 @@ import { useNavigate } from "react-router-dom";
 import { JobRequireEdit, JobRequireView } from "@/components/base/ButtonComponents";
 
 const JobRequireList = () => {
+    const queryClient = useQueryClient();
+      const usertype = Number(localStorage.getItem("userType")); 
+    const isRestrictedUserDelete = [1, 2, 4].includes(usertype);
+    const [highlightedRowId, setHighlightedRowId] = useState(null);
   const {
-    data: registrations,
+    data: jobrequire,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["registrations"],
+    queryKey: ["jobrequire"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await axios.get(
@@ -70,6 +75,49 @@ const JobRequireList = () => {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const navigate = useNavigate();
+
+   useEffect(() => {
+      const lastEditedId = localStorage.getItem("lastEditedjobRequireId");
+  
+      if (lastEditedId) {
+        setHighlightedRowId(parseInt(lastEditedId));
+  
+        localStorage.removeItem("lastEditedjobRequireId");
+  
+        setTimeout(() => {
+          const element = document.getElementById(`jobRequire-row-${lastEditedId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 500);
+  
+        setTimeout(() => {
+          setHighlightedRowId(null);
+        }, 3000);
+      }
+    }, []);
+    const deleteMutation = useMutation({
+      mutationFn: async (id) => {
+        const token = localStorage.getItem("token");
+        await axios.delete(`${BASE_URL}/api/panel-delete-jobrequire/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries(["jobrequire"]); 
+      },
+      onError: (error) => {
+        console.error("Error deleting item:", error);
+      },
+    });
+    const handleDelete = (e,id)=>{
+      e.preventDefault()
+      // https://agsrebuild.store/public/api/panel-delete-jobrequire/${id}
+      if (window.confirm("Are you sure you want to delete this item?")) {
+        deleteMutation.mutate(id);
+      }
+    }
+
   const handleCompanyStatusLabel = (status) => {
     switch (status) {
       case '0':
@@ -85,9 +133,9 @@ const JobRequireList = () => {
   // Define columns for the table
   const columns = [
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => <div>{row.getValue("id")}</div>,
+      accessorKey: "index",
+      header: "Sl.No",
+      cell: ({ row }) => <div>{row.index+1}</div>,
     },
     {
       accessorKey: "full_name",
@@ -162,7 +210,12 @@ const JobRequireList = () => {
             <Edit className="h-4 w-4" />
           </Button> */}
           <JobRequireEdit
-          onClick={()=>navigate(`/job-require-edit/${registration}`)}
+          onClick={()=>
+          {
+            localStorage.setItem("lastEditedjobRequireId", registration);
+            navigate(`/job-require-edit/${registration}`)}
+          }
+       
           />
           {/* <Button
             variant="ghost"
@@ -172,8 +225,22 @@ const JobRequireList = () => {
             <Eye className="h-4 w-4" />
           </Button> */}
           <JobRequireView
-          onClick={()=>navigate(`/job-require-view/${registration}`)}
+          onClick={()=>
+          {
+            localStorage.setItem("lastEditedjobRequireId", registration);
+            navigate(`/job-require-view/${registration}`)}
+          }
+         
           />
+           {!isRestrictedUserDelete && (
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e)=>handleDelete(e,registration)}
+                                          >
+                                            <Trash2 className="h-4 w-4  text-red-500 " />
+                                          </Button>
+                                             )}
           </div>
         );
       },
@@ -182,7 +249,7 @@ const JobRequireList = () => {
 
   // Create the table instance
   const table = useReactTable({
-    data: registrations || [],
+    data: jobrequire || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -200,7 +267,7 @@ const JobRequireList = () => {
     },
     initialState: {
       pagination: {
-        pageSize: 7,
+        pageSize: 30000,
       },
     },
   });
@@ -248,13 +315,13 @@ const JobRequireList = () => {
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
           <Input
-            placeholder="Filter Full names..."
-            value={table.getColumn("full_name")?.getFilterValue() ?? ""}
-            onChange={(event) =>
-              table.getColumn("full_name")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
+                     placeholder="Filter job require..."
+                     value={table.getState().globalFilter || ""}
+                     onChange={(event) => {
+                       table.setGlobalFilter(event.target.value);
+                     }}
+                     className="max-w-sm"
+                   />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
@@ -283,62 +350,69 @@ const JobRequireList = () => {
           </DropdownMenu>
         </div>
         {/* table  */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+ <div className="rounded-md border">
+          <div className="bg-white overflow-auto h-[calc(30rem-3rem)]">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      id={`jobRequire-row-${row.original.id}`}
+                      className={
+                        highlightedRowId === row.original.id
+                          ? "bg-yellow-100 transition-colors duration-1000"
+                          : "cursor-pointer hover:bg-gray-100"
+                      }
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
         {/* row slection and pagintaion button  */}
         <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
+         <div className="flex-1 text-sm text-muted-foreground">
+                    Total {table.getFilteredRowModel().rows.length} Job Require(s).
+                  </div>
           <div className="space-x-2">
             <Button
               variant="outline"

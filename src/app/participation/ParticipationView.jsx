@@ -34,7 +34,7 @@ const ParticipationView = ({ id }) => {
       );
       return response.data.participant;
     },
-    enabled: !!id, // Only run query if registrationId exists
+    enabled: !!id, 
   });
 
    const handlePrint = useReactToPrint({

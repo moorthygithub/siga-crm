@@ -290,7 +290,7 @@ const MsmeView = () => {
           trigger={() => (
           
              <Button
-              className="fixed top-4 right-4 px-6 py-2 transition-all duration-300"
+              className="fixed top-28 right-4 px-6 py-2 transition-all duration-300"
               type="submit"
               disabled={isPrinting}
             >

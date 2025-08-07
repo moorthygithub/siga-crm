@@ -985,7 +985,7 @@ const ParticipationList = () => {
     },
     initialState: {
       pagination: {
-        pageSize: 300,
+        pageSize: 30000,
       },
     },
   });
