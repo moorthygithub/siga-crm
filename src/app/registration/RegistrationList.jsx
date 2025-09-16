@@ -45,8 +45,8 @@ import { useReactToPrint } from "react-to-print";
 const RegistrationList = () => {
   const printRef = useRef(null);
   const [selectedRegistration, setSelectedRegistration] = useState(null);
-  const [printingId, setPrintingId] = useState(null); 
- const [isBulkPrinting, setIsBulkPrinting] = useState(false);
+  const [printingId, setPrintingId] = useState(null);
+  const [isBulkPrinting, setIsBulkPrinting] = useState(false);
   const {
     data: registrations,
     isLoading,
@@ -115,7 +115,7 @@ const RegistrationList = () => {
     onPrintError: (error) => {
       console.error("Print error:", error);
       setPrintingId(null);
-    }
+    },
   });
   const printAllUnprinted = async () => {
     if (!registrations || isBulkPrinting) return;
@@ -152,13 +152,13 @@ const RegistrationList = () => {
 
   const handlePrintClick = async (registration) => {
     try {
-      setPrintingId(registration.id); 
+      setPrintingId(registration.id);
       const data = await handleFetchRegistration(registration.id);
       setSelectedRegistration(data);
       setTimeout(handlePrint, 100);
     } catch (error) {
       console.error("Error preparing print:", error);
-      setPrintingId(null); 
+      setPrintingId(null);
     }
   };
 
@@ -217,7 +217,7 @@ const RegistrationList = () => {
               size="icon"
               className="top-4 right-4 z-10"
               onClick={() => handlePrintClick(registration)}
-              disabled={printingId !== null && !isCurrentPrinting} 
+              disabled={printingId !== null && !isCurrentPrinting}
             >
               {isCurrentPrinting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -291,26 +291,25 @@ const RegistrationList = () => {
     <Page>
       <div className="flex w-full p-4 gap-2">
         <div className="w-[100%]">
-          
           <div className="flex justify-between items-center">
-                      <div className="flex text-left text-xl text-gray-800 font-[400]">
-                      Registrations List
-                      </div>
-                      <Button
-                        variant="outline"
-                        onClick={printAllUnprinted}
-                        disabled={isBulkPrinting}
-                      >
-                       {isBulkPrinting ? (
-                           <>
-                             <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                             Printing All...
-                           </>
-                         ) : (
-                           "Print All Unprinted"
-                         )}
-                      </Button>
-                    </div>
+            <div className="flex text-left text-xl text-gray-800 font-[400]">
+              Registrations List
+            </div>
+            <Button
+              variant="outline"
+              onClick={printAllUnprinted}
+              disabled={isBulkPrinting}
+            >
+              {isBulkPrinting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Printing All...
+                </>
+              ) : (
+                "Print All Unprinted"
+              )}
+            </Button>
+          </div>
           <div className="flex items-center py-4">
             <Input
               placeholder="Search..."
@@ -431,18 +430,15 @@ const RegistrationList = () => {
               key={selectedRegistration.id}
               className="w-full print:h-96 absolute top-[6.5rem]  mx-auto  max-w-sm left-1/2 -translate-x-1/2 shadow-lg print:border-none bg-white rounded-lg overflow-hidden print:shadow-none  print:rounded-none"
             >
-               <div
-     className="absolute top-5 w-28 h-28 border-none left-1/2 -translate-x-1/2"
-  >
-    {selectedRegistration.fair_person_image && (
-      <img
-      src={`http://southindiagarmentsassociation.com/public/register_images/${selectedRegistration.fair_person_image}`}
-      alt="Registrant"
-      className="w-full h-full object-cover rounded-none"
-    />
-    )}
-    
-  </div>
+              <div className="absolute top-5 w-28 h-28 border-none left-1/2 -translate-x-1/2">
+                {selectedRegistration.fair_person_image && (
+                  <img
+                    src={`${BASE_URL}/register_images/${selectedRegistration.fair_person_image}`}
+                    alt="Registrant"
+                    className="w-full h-full object-cover rounded-none"
+                  />
+                )}
+              </div>
               <div className="px-12  -translate-y-16 text-center print:absolute border-none print:bottom-28 print:left-1/2 print:transform print:-translate-x-1/2">
                 <div className="mb-2">
                   <h2 className="text-lg print:w-80 font-bold text-gray-800">

@@ -15,6 +15,7 @@ import {
 import { CreditCardIcon, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import BASE_URL from "@/config/BaseUrl";
 
 
 const CreateButtonRole = () => {
@@ -154,7 +155,7 @@ const CreateButtonRole = () => {
       // Submit each permission
       for (const permission of permissionsToSubmit) {
         await axios.post(
-          "https://southindiagarmentsassociation.com/public/api/panel-create-usercontrol",
+          `${BASE_URL}/api/panel-create-usercontrol`,
           permission,
           {
             headers: {

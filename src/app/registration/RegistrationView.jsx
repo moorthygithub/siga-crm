@@ -32,12 +32,11 @@ const RegistrationView = ({ id }) => {
   });
   // fair_no_of_people
 
-
-
-
   const handlePrintMultiple = useReactToPrint({
     content: () => printRef.current,
-    documentTitle: registrationDetails ? `Registration-${registrationDetails.fair_person_name}` : 'Registration',
+    documentTitle: registrationDetails
+      ? `Registration-${registrationDetails.fair_person_name}`
+      : "Registration",
     pageStyle: `
       @page {
         size: auto;
@@ -59,17 +58,11 @@ const RegistrationView = ({ id }) => {
         const remainingPrints = registrationDetails.fair_no_of_people - 1;
         registrationDetails.fair_no_of_people = remainingPrints;
         if (remainingPrints > 0) {
-          setTimeout(handlePrintMultiple, 150); 
+          setTimeout(handlePrintMultiple, 150);
         }
       }
-    }
+    },
   });
-
-
-
-
-
-
 
   // If no registration is selected
   if (!id) {
@@ -117,24 +110,20 @@ const RegistrationView = ({ id }) => {
 
   return (
     <Card className="w-full relative">
-     
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute top-4 right-4 z-10"
-            onClick={() => {
-              if (registrationDetails) {
-               
-                registrationDetails.fair_no_of_people = registrationDetails.fair_no_of_people || 1;
-              }
-              handlePrintMultiple();
-            }}
-          >
-            <Printer className="h-4 w-4" />
-          </Button>
-
-
-     
+      <Button
+        variant="outline"
+        size="icon"
+        className="absolute top-4 right-4 z-10"
+        onClick={() => {
+          if (registrationDetails) {
+            registrationDetails.fair_no_of_people =
+              registrationDetails.fair_no_of_people || 1;
+          }
+          handlePrintMultiple();
+        }}
+      >
+        <Printer className="h-4 w-4" />
+      </Button>
 
       <CardContent className="p-0">
         {registrationDetails ? (
@@ -146,7 +135,7 @@ const RegistrationView = ({ id }) => {
             <div className="w-full h-64 print:w-40 print:absolute print:h-40 print:top-2 print:left-2 bg-gray-200 flex items-center justify-center">
               {registrationDetails.fair_person_image ? (
                 <img
-                  src={`http://southindiagarmentsassociation.com/public/idcard_images/${registrationDetails.fair_person_image}`}
+                  src={`${BASE_URL}/idcard_images/${registrationDetails.fair_person_image}`}
                   alt="Registrant"
                   className="w-full h-full object-cover"
                 />
@@ -170,8 +159,6 @@ const RegistrationView = ({ id }) => {
                   {registrationDetails.fair_person_name || "N/A"}
                 </h3>
               </div>
-
-              
             </div>
           </div>
         ) : (
