@@ -1,4 +1,4 @@
-import BASE_URL from '@/config/BaseUrl';
+import BASE_URL from "@/config/BaseUrl";
 import React, { useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Printer } from "lucide-react";
 import ReactToPrint from "react-to-print";
 
-const ParticipantView = ({id}) => {
-    const printRef = useRef(null);
+const ParticipantView = ({ id }) => {
+  const printRef = useRef(null);
 
   const {
     data: registrationDetails,
@@ -76,19 +76,19 @@ const ParticipantView = ({id}) => {
   }
   return (
     <Card className="w-full relative">
-    <ReactToPrint
-      trigger={() => (
-        <Button
-          variant="outline"
-          size="icon"
-          className="absolute top-4 right-4 z-10"
-        >
-          <Printer className="h-4 w-4" />
-        </Button>
-      )}
-      content={() => printRef.current}
-      documentTitle={`Registration-${registrationDetails.idcardsub_rep_name}`}
-      pageStyle={`
+      <ReactToPrint
+        trigger={() => (
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute top-4 right-4 z-10"
+          >
+            <Printer className="h-4 w-4" />
+          </Button>
+        )}
+        content={() => printRef.current}
+        documentTitle={`Registration-${registrationDetails.idcardsub_rep_name}`}
+        pageStyle={`
         @page {
           size: auto;
           margin: 0;
@@ -104,54 +104,52 @@ const ParticipantView = ({id}) => {
           }
         }
       `}
-    />
+      />
 
-    <CardContent className="p-0">
-      {registrationDetails ? (
-        <div
-          ref={printRef}
-          className="w-full print:h-96 print:relative max-w-sm mx-auto shadow-lg print:border-none bg-white  rounded-lg overflow-hidden print:shadow-none print:border print:rounded-none "
-        >
-          {/* Photo Section */}
-          <div className="w-full h-64 print:w-40 print:absolute print:h-40 print:top-2 print:left-2 bg-gray-200 flex items-center justify-center">
-            {registrationDetails.idcardsub_rep_image ? (
-              <img
-                src={`http://southindiagarmentsassociation.com/public/idcard_images/${registrationDetails.idcardsub_rep_image}`}
-                alt="Participant"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="text-gray-500">No Image</div>
-            )}
-          </div>
-
-          {/* Details Section */}
-          <div className=" p-12 text-center print:absolute  print:bottom-14 print:left-1/2 print:transform print:-translate-x-1/2 ">
-            <div className="mb-2">
-              {/* <p className="text-sm text-gray-600">Firm Name</p> */}
-              <h2 className="text-xl print:w-80 font-bold text-gray-800">
-                {registrationDetails.id_card_brand_name || "N/A"}
-              </h2>
+      <CardContent className="p-0">
+        {registrationDetails ? (
+          <div
+            ref={printRef}
+            className="w-full print:h-96 print:relative max-w-sm mx-auto shadow-lg print:border-none bg-white  rounded-lg overflow-hidden print:shadow-none print:border print:rounded-none "
+          >
+            {/* Photo Section */}
+            <div className="w-full h-64 print:w-40 print:absolute print:h-40 print:top-2 print:left-2 bg-gray-200 flex items-center justify-center">
+              {registrationDetails.idcardsub_rep_image ? (
+                <img
+                  src={`${BASE_URL}/idcard_images/${registrationDetails.idcardsub_rep_image}`}
+                  alt="Participant"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="text-gray-500">No Image</div>
+              )}
             </div>
 
-            <div>
-              {/* <p className="text-sm text-gray-600">Person Name</p> */}
-              <h3 className="text-md font-semibold text-gray-700">
-                {registrationDetails.idcardsub_rep_name || "N/A"}
-              </h3>
+            {/* Details Section */}
+            <div className=" p-12 text-center print:absolute  print:bottom-14 print:left-1/2 print:transform print:-translate-x-1/2 ">
+              <div className="mb-2">
+                {/* <p className="text-sm text-gray-600">Firm Name</p> */}
+                <h2 className="text-xl print:w-80 font-bold text-gray-800">
+                  {registrationDetails.id_card_brand_name || "N/A"}
+                </h2>
+              </div>
+
+              <div>
+                {/* <p className="text-sm text-gray-600">Person Name</p> */}
+                <h3 className="text-md font-semibold text-gray-700">
+                  {registrationDetails.idcardsub_rep_name || "N/A"}
+                </h3>
+              </div>
             </div>
-
-            
           </div>
-        </div>
-      ) : (
-        <p className="text-muted-foreground text-center p-4">
-          No details available
-        </p>
-      )}
-    </CardContent>
-  </Card>
-  )
-}
+        ) : (
+          <p className="text-muted-foreground text-center p-4">
+            No details available
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
-export default ParticipantView
+export default ParticipantView;

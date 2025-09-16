@@ -57,7 +57,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const ParticipantList = () => {
   const printRef = useRef(null);
-   const { toast } = useToast();
+  const { toast } = useToast();
   const [selectedRegistration, setSelectedRegistration] = useState(null);
   const [printingId, setPrintingId] = useState(null);
   const [isBulkPrinting, setIsBulkPrinting] = useState(false);
@@ -70,12 +70,9 @@ const ParticipantList = () => {
     queryKey: ["idcards"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `${BASE_URL}/api/panel-fetch-idcard`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${BASE_URL}/api/panel-fetch-idcard`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       return response.data.registeridcard;
     },
   });
@@ -84,7 +81,7 @@ const ParticipantList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
- const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteContractId, setDeleteContractId] = useState(null);
   const handleFetchRegistration = async (id) => {
     try {
@@ -105,8 +102,8 @@ const ParticipantList = () => {
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
     documentTitle: selectedRegistration
-    ? `IdCard-${selectedRegistration.id_card_brand_name}`
-    : "IdCard",
+      ? `IdCard-${selectedRegistration.id_card_brand_name}`
+      : "IdCard",
     pageStyle: `
       @page {
         size: auto;
@@ -137,10 +134,11 @@ const ParticipantList = () => {
   });
 
   const printAllUnprinted = async () => {
-    if (!idcards || isBulkPrinting ) return;
+    if (!idcards || isBulkPrinting) return;
 
     const unprintedRows = idcards.filter(
-      (row) => !row.idcardsub_print_status || row.idcardsub_print_status !== "Printed"
+      (row) =>
+        !row.idcardsub_print_status || row.idcardsub_print_status !== "Printed"
     );
 
     for (const row of unprintedRows) {
@@ -194,73 +192,75 @@ const ParticipantList = () => {
         title: "Success",
         description: "ID Card deleted successfully",
       });
-    }, 
+    },
     onError: (error) => {
       toast({
         title: "Error",
-        description: error?.response?.data?.message || "Failed to delete ID Card. Please try again.",
+        description:
+          error?.response?.data?.message ||
+          "Failed to delete ID Card. Please try again.",
         variant: "destructive",
       });
     },
   });
- 
+
   const confirmDelete = () => {
     if (deleteContractId?.id) {
       deleteMutation.mutate(deleteContractId.id);
       setDeleteContractId(null);
     }
   };
-  
+
   const columns = [
     {
-          accessorKey: "id",
-          header: "ID",
-          cell: ({ row }) => <div>{row.getValue("id")}</div>,
-        },
-        {
-          accessorKey: "id_name_of_firm",
-          header: ({ column }) => (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              Firm Name
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          ),
-          cell: ({ row }) => <div>{row.getValue("id_name_of_firm")}</div>,
-        },
-        {
-          accessorKey: "id_card_brand_name",
-          header: "Brand",
-          cell: ({ row }) => <div>{row.getValue("id_card_brand_name")}</div>,
-        },
-      
-        {
-          accessorKey: "idcardsub_rep_name",
-          header: ({ column }) => (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-            Rep. Name
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          ),
-          cell: ({ row }) => <div>{row.getValue("idcardsub_rep_name")}</div>,
-        },
-        {
-          accessorKey: "idcardsub_print_status",
-          header: "Status",
-          cell: ({ row }) => {
-            const status = row.getValue("idcardsub_print_status");
-            return (
-              <span className="inline-block rounded-md px-2 py-1 text-xs font-normal bg-blue-100 text-blue-800">
-                {status}
-              </span>
-            );
-          },
-        },
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => <div>{row.getValue("id")}</div>,
+    },
+    {
+      accessorKey: "id_name_of_firm",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Firm Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div>{row.getValue("id_name_of_firm")}</div>,
+    },
+    {
+      accessorKey: "id_card_brand_name",
+      header: "Brand",
+      cell: ({ row }) => <div>{row.getValue("id_card_brand_name")}</div>,
+    },
+
+    {
+      accessorKey: "idcardsub_rep_name",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Rep. Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div>{row.getValue("idcardsub_rep_name")}</div>,
+    },
+    {
+      accessorKey: "idcardsub_print_status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("idcardsub_print_status");
+        return (
+          <span className="inline-block rounded-md px-2 py-1 text-xs font-normal bg-blue-100 text-blue-800">
+            {status}
+          </span>
+        );
+      },
+    },
     {
       id: "actions",
       header: "Action",
@@ -284,20 +284,19 @@ const ParticipantList = () => {
               )}
             </Button>
             <Button
-                        variant="outline"
-                    size="icon"
-        
-                    onClick={() => {
-                      setDeleteContractId({
-                        id: registration.id,
-                        repName: registration.idcardsub_rep_name,
-                      });
-                    
-                      setDeleteConfirmOpen(true);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-700" />
-                  </Button> 
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                setDeleteContractId({
+                  id: registration.id,
+                  repName: registration.idcardsub_rep_name,
+                });
+
+                setDeleteConfirmOpen(true);
+              }}
+            >
+              <Trash2 className="h-4 w-4 text-red-700" />
+            </Button>
           </div>
         );
       },
@@ -359,7 +358,7 @@ const ParticipantList = () => {
       </Page>
     );
   }
- return (
+  return (
     <Page>
       <div className="flex w-full p-4 gap-2">
         <div className="w-[100%]">
@@ -372,14 +371,14 @@ const ParticipantList = () => {
               onClick={printAllUnprinted}
               disabled={isBulkPrinting}
             >
-               {isBulkPrinting ? (
-    <>
-      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-      Printing All...
-    </>
-  ) : (
-    "Print All Unprinted"
-  )}
+              {isBulkPrinting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Printing All...
+                </>
+              ) : (
+                "Print All Unprinted"
+              )}
             </Button>
           </div>
           <div className="flex items-center py-4">
@@ -471,7 +470,6 @@ const ParticipantList = () => {
           </div>
           <div className="flex items-center justify-end space-x-2 py-4">
             <div className="flex-1 text-sm text-muted-foreground">
-
               {table.getFilteredRowModel().rows.length} row(s).
             </div>
             <div className="space-x-2">
@@ -505,7 +503,7 @@ const ParticipantList = () => {
               <div className="absolute top-5 w-28 h-28 border-2 left-1/2 -translate-x-1/2">
                 {selectedRegistration.idcardsub_rep_image && (
                   <img
-                    src={`http://southindiagarmentsassociation.com/public/idcard_images/${selectedRegistration.idcardsub_rep_image}`}
+                    src={`${BASE_URL}/idcard_images/${selectedRegistration.idcardsub_rep_image}`}
                     alt="Registrant"
                     className="w-full h-full object-cover rounded-none"
                   />
@@ -527,29 +525,29 @@ const ParticipantList = () => {
           )}
         </div>
       </div>
-       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the ID card
-                  for <span className="font-semibold text-gray-900">{deleteContractId?.repName}</span>.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={confirmDelete}
-                    
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the ID
+              card for{" "}
+              <span className="font-semibold text-gray-900">
+                {deleteContractId?.repName}
+              </span>
+              .
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Page>
   );
 };
-
 
 export default ParticipantList;

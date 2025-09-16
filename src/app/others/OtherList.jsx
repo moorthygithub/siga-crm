@@ -440,7 +440,7 @@ const OtherList = () => {
               <div className="absolute top-5 w-28 h-28 border-none left-1/2 -translate-x-1/2">
                 {selectedRegistration.fair_person_image && (
                   <img
-                    src={`http://southindiagarmentsassociation.com/public/other_images/${selectedRegistration.fair_person_image}`}
+                    src={`${BASE_URL}/other_images/${selectedRegistration.fair_person_image}`}
                     alt="Registrant"
                     className="w-full h-full object-cover rounded-none"
                   />
